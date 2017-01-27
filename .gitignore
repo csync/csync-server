@@ -1,0 +1,11 @@
+.idea/
+*.iml
+.*.swp
+.DS_Store
+target/
+/vertx/public/dataviewer/node_modules
+/vertx/public/dataviewer/ui/bundle.js
+/vertx/public/dataviewer/ui/bundle.css
+/vertx/public/dataviewer/ui/*.png
+/vertx/public/dataviewer/ui/*.gif
+/vertx/public/dataviewer/lib/csync/node_modules

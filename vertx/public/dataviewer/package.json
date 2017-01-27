@@ -1,0 +1,27 @@
+{
+  "name": "CSyncDataViewer",
+  "version": "0.0.1",
+  "scripts": {
+    "dev-start": "gulp && nodemon app.js"
+  },
+  "dependencies": {
+    "csync": "1.0.1",
+    "gulp": "~3.9.1",
+    "gulp-concat": "~2.6.0",
+    "gulp-minify-css": "~1.2.4",
+    "jquery": "~3.1.1",
+    "jstree": "~3.3.2",
+    "knockout": "~3.4.0",
+    "mustache": "^2.2.1",
+    "split.js": "~1.0.7",
+    "webworkify": "~1.4.0"
+  },
+  "devDependencies": {
+    "browserify": "~13.1.0",
+    "grunt": "~0.4.1",
+    "gulp-cli": "1.2.2",
+    "gulp-streamify": "^1.0.2",
+    "gulp-uglify": "^2.0.0",
+    "vinyl-source-stream": "~1.1.0"
+  }
+}

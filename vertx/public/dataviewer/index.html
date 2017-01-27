@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<script src="https://apis.google.com/js/platform.js" async defer></script>
+		<title>Csync Dataviewer</title>
+	</head>
+	<body class="flex-container">
+		<div id="notif-bar" hidden="true">XLV NOTIF</div>
+		<div id="left-panel" class="flex-container-nav nav-bar">
+           <div class="active" id="dataViewer"> <a href="#"><img src="./assets/data-viewer.png"> Data Viewer</a></div>
+	    </div>
+		<div id="authModal" class="modal">
+			<div class="modal-content">
+				<div class="signin"> Sign in to continue </div>
+				<div class="providers">
+					<div class="g-signin2" data-width="200px" data-longtitle="true" data-onsuccess="onSignIn"></div>
+					<button class="guest-login"> Guest Login </button>
+				</div>
+			</div>
+		</div>
+	  	<div class="flex-container-main">
+	    	<div id="header-div" class="flex-header-container"> <h2>System Status</h2></div>
+	    	<div class="flex-container-tree-properties"> 
+		        <div id="middle" class="flex-item content">
+					<div id="jstree"></div><br>
+				</div>
+				<div id="sidebar-right" class="flex-item sidebar-right">
+					<div class="container-edit">
+						<h2>Properties</h2>
+						<div class="container-button">
+							<button id="editButton" data-bind="click: editButton"><img src="./assets/edit-properties.png"></button> 
+						</div>
+					</div>
+					<div class="acl-info"> 
+						<h3>INFO</h3>
+					    <div id="noACL">No ACL info available</div>
+						<div id="acl" hidden=true></div>
+						<h3>DATA</h3>		
+					    <div id="noDataText">Select an object in the Data Viewer to see its properties here.</div><br>
+					</div>
+					<form class="form" id="node_properties" data-bind="foreach: properties">
+						<strong><label id="keyValue" for="inputField" data-bind="text: keyValue" ></label></strong>
+						<pre class="dataValueLabel" data-bind="text: dataValue"></pre>
+						<input id="inputField" type="text" class="dataValueInput" data-bind="textInput: dataValue" hidden='true'>
+						<br>
+					</form>
+					<div>
+						<textarea editable id="editBox" data-bind="value: editBox" hidden='true'>
+						</textarea>
+					</div>
+                    <div class="container-button">
+                        <div class="save-button" id="saveButton" hidden='true' data-bind="click: saveButton"> SAVE </div> 
+                    </div>
+                    <div class="container-button">
+                        <div class="cancel-button" id="cancelButton" hidden='true' data-bind="click: cancelButton">CANCEL</div>
+                    </div>
+					<div class="container-button">
+						<div class="nodeManipulation" id="deleteButton" data-bind="click: deleteNode" disabled='true'><img src="./assets/delete.png"> Delete Node</div>
+                        <div class="nodeManipulation" id="addNode" data-bind="click: addNodeButton"><img src="./assets/add.png">Add Node</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<link rel="stylesheet" type="text/css" href="./ui/bundle.css"/>
+	  	<script src="./ui/bundle.js"></script>
+	</body>
+</html>

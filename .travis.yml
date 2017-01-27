@@ -1,0 +1,14 @@
+language: scala
+scala:
+  - 2.12.1
+services:
+  - rabbitmq
+  - postgresql
+jdk:
+  - oraclejdk8
+branches:
+  only:
+  - master
+  - develop
+addons:
+  postgresql: "9.5"
