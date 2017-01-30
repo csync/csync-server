@@ -28,7 +28,9 @@ or our Github repo.
 6. In the comment for the PR write `Resolves #___` and fill the blank with the issue number you
 created earlier.
     1. For example, the comment we wrote for the PR with this tutorial was `Resolves #94`
-7. That's it, thanks for the contribution!
+7. Contributions require sign-off. If you can certify the [Developer's Certificate of Origin 1.1 (DCO)](http://elinux.org/Developer_Certificate_Of_Origin) then you just add a Signed-off-by line to the PR description, which indicates that the you accept the DCO: `Signed-off-by: Jane Doe <jane.doe@domain.com>`
+    1. When committing using the command line you can sign off using the --signoff or -s flag. This adds a Signed-off-by line by the committer at the end of the commit log message.`git commit -s -m "Commit message"`
+8. That's it, thanks for the contribution!
 
 ## Setting up your environment
 
