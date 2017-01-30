@@ -99,13 +99,13 @@ The ACL for a key is set when the key is created by the first write performed to
   
   Both authentication providers can be enabled at the same time by having all environment variables specified.
   
-  Click [here] (https://github.ibm.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix
+  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix
 
-  Need to handle workloads larger than what's possible with a single instance? [Check this out](https://github.ibm.com/csync/csync-server/wiki/Using-external-PostgreSQL-and-RabbitMQ-instances)
+  Need to handle workloads larger than what's possible with a single instance? [Check this out](https://github.com/csync/csync-server/wiki/Using-external-PostgreSQL-and-RabbitMQ-instances)
 
 ### Dataviewer
 
-When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.ibm.com/csync/csync-server/blob/develop/vertx/public/dataviewer/README.md).
+When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md).
 
 NOTE: Chrome is the only supported browser at this time. Contributions to supporting other browsers are welcome.
 
@@ -117,11 +117,11 @@ NOTE: Chrome is the only supported browser at this time. Contributions to suppor
 In case you need a new image, you need to stop and delete the old one by running `docker kill <docker container #>` and `docker rm <docker container #>`
 
 ## Troubleshooting
-Having issues with the server? Check out the debugging article [here] (https://github.ibm.com/csync/csync-server/wiki/Debugging-a-server-problem).
+Having issues with the server? Check out the debugging article [here] (https://github.com/csync/csync-server/wiki/Debugging-a-server-problem).
 
 # License
 This library is licensed under Apache 2.0. Full license text is
 available in [LICENSE](LICENSE).
 
 # Contribution Guide
-Want to contribute? Take a look at our [CONTRIBUTING.md] (https://github.ibm.com/csync/csync-server/blob/develop/CONTRIBUTING.md)
+Want to contribute? Take a look at our [CONTRIBUTING.md] (https://github.com/csync/csync-server/blob/master/CONTRIBUTING.md)
