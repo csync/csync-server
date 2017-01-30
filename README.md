@@ -41,6 +41,15 @@ Only the latest, most recent, values sync, so you’re never left with old data.
 ## Local Storage
 Work offline, read and write, and have data automatically sync the next time you’re connected. CSync maintains a local cache of data that is available to the client even when the client is offline or otherwise not connected to the CSync service. The client may perform listens, writes, and deletes on the local store while offline. When the client reestablishes connectivity to the CSync service, the local cache is efficiently synchronized with the latest data from the CSync store. The local cache is persistent across application restarts and device reboots.
 
+## Authentication
+Authenticate in an ever-growing number of ways from the provider of your choice. Currently the following methods are supported:
+- [Google OAuth](https://developers.google.com/identity/protocols/OAuth2) `google`
+- [Github Auth](https://developer.github.com/v3/oauth/) `github`
+- Demo Login `demo`
+
+### Demo Login
+The Demo Login is an easy way of getting started with CSync. Just provide the `demo` authentication provider and the `demoToken` to authenticate as a demo user. This token allows for multiple user accounts as long as it is in the form `demoToken({someString})`. For example: `demoToken(abc)`, `demoToken` and `demoToken(123)` would all be treated as different user accounts.
+
 ## Access Controls
 Use simple access controls to clearly state who can read and write, keeping your data safe. Each key in the CSync store has an associated access control list (ACL) that specifies which users can access the key. 
 
