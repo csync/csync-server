@@ -323,7 +323,9 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       outgoing match {
         case d: Data =>
           val key = Key(d.path)
-          responseData(key) = d
+          if (d.deletePath == true) {
+            responseData(key) = d
+          }
           if (responseData.keySet.size == 2) {
             promise.success(responseData.toMap)
           }
@@ -335,25 +337,25 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       Pub(99, Seq("a"), Some("x"), false, None, None).doit(session)
       val firstPubResponse = Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
       val secondPubResponse = Pub(101, Seq("a", "c"), Some("z"), false, None, None).doit(session)
-//      val res = promise.future.futureValue
-//      val firstKey = res(Key("a", "b"))
-//      val secondKey = res(Key("a", "c"))
-
-//      firstKey.cts should be(firstPubResponse.cts)
-//      firstKey.vts should be(firstPubResponse.vts)
-//      firstKey.data should be(Some("y"))
-//      firstKey.creator should be("demoUser")
-//      firstKey.acl should be("$publicCreate")
-//      firstKey.deletePath should be(false)
-//
-//      secondKey.cts should be(secondPubResponse.cts)
-//      secondKey.vts should be(secondPubResponse.vts)
-//      secondKey.data should be(Some("z"))
-//      secondKey.creator should be("demoUser")
-//      secondKey.acl should be("$publicCreate")
-//      secondKey.deletePath should be(false)
-
+      Sub(Seq("#")).doit(session)
       val thirdPubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      val res = promise.future.futureValue
+      val keyB = res(Key("a","b"))
+      val keyC = res(Key("a","c"))
+
+      keyB.cts should be(thirdPubResponse.cts)
+      keyB.vts should be <= thirdPubResponse.vts
+      keyB.creator should be("demoUser")
+      keyB.acl should be("$publicCreate")
+      keyB.deletePath should be(true)
+      keyB.data should be(None)
+
+      keyC.cts should be(thirdPubResponse.cts)
+      keyC.vts should be <= thirdPubResponse.vts
+      keyC.creator should be("demoUser")
+      keyC.acl should be("$publicCreate")
+      keyC.deletePath should be(true)
+      keyC.data should be(None)
     } finally {
       session.close()
     }

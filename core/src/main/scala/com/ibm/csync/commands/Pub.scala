@@ -38,15 +38,16 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
 
     SqlStatement.runQuery(
       sqlConnection,
-      "SELECT vts,cts,aclid,creatorid FROM latest WHERE " + patternWhere + " AND isDeleted = false FOR UPDATE ", patternVals
+      "SELECT vts,cts,aclid,creatorid,key FROM latest WHERE " + patternWhere + " AND isDeleted = false FOR UPDATE ", patternVals
 
     ) { rs =>
-        if (rs.next) {
+        var highestVts = VTS(-1)
+        while (rs.next) {
           val oldVts = rs.getLong("vts")
           val oldCts = rs.getLong("cts")
           val oldCreator = CreatorId(rs.getString("creatorid"))
           val oldAcl = ACL(rs.getString("aclid"), oldCreator)
-
+          val oldPath = rs.getString("key")
           if (req.cts <= oldCts) PubCtsCheckFailed.throwIt()
 
           oldAcl.checkDelete(sqlConnection, us.userInfo)
@@ -62,14 +63,17 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
             cts = req.cts,
             acl = oldAcl.id,
             creator = oldCreator.id,
-            path = pubKey.asStrings,
+            path = oldPath.split('.'),
             deletePath = true,
             data = None
           )
-          newVts
-        } else {
+          if (newVts.vts > highestVts.vts) { highestVts = newVts}
+        }
+        if (highestVts == -1) {
           /* TODO: Is this really needed? */
           CannotDeleteNonExistingPath.throwIt()
+        } else {
+          return highestVts
         }
       }
   }
