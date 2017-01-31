@@ -9,6 +9,5 @@ jdk:
 branches:
   only:
   - master
-  - develop
 addons:
-  postgresql: "9.5"
+  postgresql: "9.6"

@@ -335,8 +335,8 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
     }
     try {
       Pub(99, Seq("a"), Some("x"), false, None, None).doit(session)
-      val firstPubResponse = Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
-      val secondPubResponse = Pub(101, Seq("a", "c"), Some("z"), false, None, None).doit(session)
+      Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
+      Pub(101, Seq("a", "c"), Some("z"), false, None, None).doit(session)
       Sub(Seq("#")).doit(session)
       val thirdPubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
       val res = promise.future.futureValue

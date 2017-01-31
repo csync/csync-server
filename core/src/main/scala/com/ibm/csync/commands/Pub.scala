@@ -67,7 +67,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
             deletePath = true,
             data = None
           )
-          if (newVts.vts > highestVts.vts) { highestVts = newVts}
+          if (newVts.vts > highestVts.vts) { highestVts = newVts }
         }
         if (highestVts == -1) {
           /* TODO: Is this really needed? */
