@@ -29,15 +29,17 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
 
   private[commands] val updates = mutable.ArrayBuffer[Data]()
   private val pubKey = Key(req.path)
+  private val (patternWhere, patternVals) = Pattern(req.path).asWhere
   private val pubData = req.data
   private val creatorId = CreatorId(us.userInfo.userId)
   private val pubAcl = req.assumeACL map { ACL(_, creatorId) }
 
   def delete(): VTS = {
+
     SqlStatement.runQuery(
       sqlConnection,
-      "SELECT vts,cts,aclid,creatorid FROM latest WHERE key = ? AND isDeleted = false FOR UPDATE",
-      Seq(pubKey.asString)
+      "SELECT vts,cts,aclid,creatorid FROM latest WHERE " + patternWhere + " AND isDeleted = false FOR UPDATE ", patternVals
+
     ) { rs =>
         if (rs.next) {
           val oldVts = rs.getLong("vts")

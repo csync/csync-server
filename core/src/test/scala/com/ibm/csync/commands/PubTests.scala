@@ -314,5 +314,49 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       session.close()
     }
   }
+
+  test("Delete on a wildcard at the end") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { outgoing =>
+      outgoing match {
+        case d: Data =>
+          val key = Key(d.path)
+          responseData(key) = d
+          if (responseData.keySet.size == 2) {
+            promise.success(responseData.toMap)
+          }
+        case _ =>
+      }
+      Future.successful(())
+    }
+    try {
+      Pub(99, Seq("a"), Some("x"), false, None, None).doit(session)
+      val firstPubResponse = Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
+      val secondPubResponse = Pub(101, Seq("a", "c"), Some("z"), false, None, None).doit(session)
+//      val res = promise.future.futureValue
+//      val firstKey = res(Key("a", "b"))
+//      val secondKey = res(Key("a", "c"))
+
+//      firstKey.cts should be(firstPubResponse.cts)
+//      firstKey.vts should be(firstPubResponse.vts)
+//      firstKey.data should be(Some("y"))
+//      firstKey.creator should be("demoUser")
+//      firstKey.acl should be("$publicCreate")
+//      firstKey.deletePath should be(false)
+//
+//      secondKey.cts should be(secondPubResponse.cts)
+//      secondKey.vts should be(secondPubResponse.vts)
+//      secondKey.data should be(Some("z"))
+//      secondKey.creator should be("demoUser")
+//      secondKey.acl should be("$publicCreate")
+//      secondKey.deletePath should be(false)
+
+      val thirdPubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+    } finally {
+      session.close()
+    }
+  }
   // scalastyle:on magic.number
 }
