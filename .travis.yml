@@ -1,9 +1,6 @@
 language: scala
 scala:
   - 2.12.1
-services:
-  - rabbitmq
-  - postgresql
 jdk:
   - oraclejdk8
 branches:
@@ -16,3 +13,4 @@ addons:
     postgresql: "9.5"
 services:
     - postgresql
+    - rabbitmq
