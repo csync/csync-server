@@ -6,7 +6,6 @@ jdk:
 branches:
   only:
   - master
-  - develop
 sudo: required
 dist: precise
 addons:
