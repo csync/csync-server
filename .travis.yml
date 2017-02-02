@@ -1,14 +1,15 @@
 language: scala
 scala:
   - 2.12.1
-services:
-  - rabbitmq
-  - postgresql
 jdk:
   - oraclejdk8
 branches:
   only:
   - master
-  - develop
+sudo: required
+dist: precise
 addons:
-  postgresql: "9.5"
+    postgresql: "9.5"
+services:
+    - postgresql
+    - rabbitmq
