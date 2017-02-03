@@ -57,5 +57,6 @@ sed -i "s/YOUR_GOOGLE_CLIENT_ID_HERE/"$CSYNC_GOOGLE_CLIENT_IDS"/" /opt/docker/pu
 
 echo "Starting CSync"
 export USER=postgres
+export VCAP_APPLICATION="{\"space_id\":\"$space_id\", \"application_id\":\"$uuid\"}"
 su -m postgres -c /opt/docker/bin/csync
 
