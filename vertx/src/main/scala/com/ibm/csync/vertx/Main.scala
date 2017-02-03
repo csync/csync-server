@@ -16,6 +16,8 @@
 
 package com.ibm.csync.vertx
 
+import java.io.{File, FileInputStream, InputStream}
+import java.util.Scanner
 import javax.sql.DataSource
 
 import com.ibm.csync.commands.{Happy, Response}
@@ -30,6 +32,8 @@ import io.vertx.core._
 import io.vertx.core.http._
 import org.json4s.JValue
 import org.postgresql.ds.PGSimpleDataSource
+import com.ibm.bluemix.deploymenttracker.client.CFJavaTrackerClient
+import com.ibm.json.java.{JSON, JSONArtifact, JSONObject}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -170,7 +174,15 @@ object Main extends LazyLogging {
     val rabbitConnection = initRabbit
 
     val port = sys.env.getOrElse("CSYNC_PORT", "6005")
+    sys.env.
     val serverOptions = new HttpServerOptions().setPort(port.toInt)
+    val f: File = new File("public/package.json")
+    if (f.exists()) {
+      val is = new FileInputStream("public/package.json")
+      val json: JSONArtifact = JSON.parse(is, true)
+      logger.info(json.toString)
+      val client = new CFJavaTrackerClient().track("https://github.com/csync/csync-server", json.asInstanceOf[JSONObject])
+    }
 
     def loop(n: Int): Future[_] =
       if (n <= 0) {
