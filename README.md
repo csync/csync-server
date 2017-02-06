@@ -1,3 +1,5 @@
+[![Build Status - Master](https://travis-ci.org/csync/csync-server.svg?branch=master)](https://travis-ci.org/csync/csync-server)
+
 # Contextual Sync 
 
 Contextual Sync (CSync) is an open source, real-time, continuous data synchronization service for building modern applications. The CSync data store is organized with key/values where keys have a hierarchical structure. Clients can obtain the current value for a key and any subsequent updates by listening on the key. Updates are delivered to all online clients in near-real time. Clients can also listen on a key pattern where some components contain wildcards. 
