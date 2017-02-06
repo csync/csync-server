@@ -29,20 +29,20 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
 
   private[commands] val updates = mutable.ArrayBuffer[Data]()
   private val pubKey = Key(req.path)
-  private val (patternWhere, patternVals) = Pattern(req.path).asWhere
   private val pubData = req.data
   private val creatorId = CreatorId(us.userInfo.userId)
   private val pubAcl = req.assumeACL map { ACL(_, creatorId) }
 
   def delete(): VTS = {
-
+    val (patternWhere, patternVals) = Pattern(req.path).asWhere
     SqlStatement.runQuery(
       sqlConnection,
       "SELECT vts,cts,aclid,creatorid,key FROM latest WHERE " + patternWhere + " AND isDeleted = false FOR UPDATE ", patternVals
 
     ) { rs =>
-        var highestVts = VTS(-1)
-        while (rs.next) {
+      var highestVts = VTS(-1)
+      while (rs.next) {
+        try {
           val oldVts = rs.getLong("vts")
           val oldCts = rs.getLong("cts")
           val oldCreator = CreatorId(rs.getString("creatorid"))
@@ -67,15 +67,23 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
             deletePath = true,
             data = None
           )
-          if (newVts.vts > highestVts.vts) { highestVts = newVts }
-        }
-        if (highestVts == -1) {
-          /* TODO: Is this really needed? */
-          CannotDeleteNonExistingPath.throwIt()
-        } else {
-          return highestVts
+          if (newVts.vts > highestVts.vts) {
+            highestVts = newVts
+          }
+        } catch {
+          case e: Exception =>
+            if (!req.path.contains("*") && !req.path.contains("#")) {
+              throw e
+            }
         }
       }
+      if (highestVts.vts == -1) {
+        /* TODO: Is this really needed? */
+        CannotDeleteNonExistingPath.throwIt()
+      } else {
+        highestVts
+      }
+    }
   }
 
   //
