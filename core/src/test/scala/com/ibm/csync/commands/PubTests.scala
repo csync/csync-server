@@ -19,7 +19,7 @@ package com.ibm.csync.commands
 import com.ibm.csync.database.Database
 import com.ibm.csync.rabbitmq.Factory
 import com.ibm.csync.session.Session
-import com.ibm.csync.types.ResponseCode.CannotDeleteNonExistingPath
+import com.ibm.csync.types.ResponseCode.{CannotDeleteNonExistingPath, PubCtsCheckFailed}
 import com.ibm.csync.types.{ClientError, Key, SessionId, Token}
 import org.postgresql.ds.PGPoolingDataSource
 import org.scalatest.concurrent.ScalaFutures
@@ -326,7 +326,7 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
         //Assert this throws the correct path does not exist error
         Pub(102, Seq("a"), Some("z"), true, None, None).doit(session)
       } catch {
-        case e: ClientError => e.code should be (CannotDeleteNonExistingPath)
+        case e: ClientError => e.code should be(CannotDeleteNonExistingPath)
         case e: Exception => fail()
       }
     } finally {
@@ -334,6 +334,27 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
     }
   }
 
+  test("Delete on a single node that has a newer cts") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      try {
+        Pub(103, Seq("a"), Some("z"), false, None, None).doit(session)
+        //Assert this throws the correct CTS check failed error
+        Pub(102, Seq("a"), Some("z"), true, None, None).doit(session)
+      } catch {
+        case e: ClientError => e.code should be(PubCtsCheckFailed)
+        case e: Exception => fail()
+      }
+    } finally {
+      session.close()
+    }
+  }
+
+  //WILDCARD TESTS
+  
   test("Delete on a wildcard at the end") {
 
     val promise = Promise[Map[Key, Data]]()
@@ -426,6 +447,52 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
     }
   }
 
+  test("Delete on a wildcard where one key is newer") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { outgoing =>
+      outgoing match {
+        case d: Data =>
+          val key = Key(d.path)
+          if (d.deletePath == true) {
+            responseData(key) = d
+          }
+          if (responseData.keySet.size == 2) {
+            promise.success(responseData.toMap)
+          }
+        case _ =>
+      }
+      Future.successful(())
+    }
+    try {
+      Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
+      Pub(103, Seq("a", "c"), Some("x"), false, None, None).doit(session) //this pub should not be deleted
+      Pub(101, Seq("a", "d"), Some("z"), false, None, None).doit(session)
+      Sub(Seq("#")).doit(session)
+      val deletePubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      val res = promise.future.futureValue
+      val keyB = res(Key("a","b"))
+      val keyD = res(Key("a","d"))
+
+      keyB.cts should be(deletePubResponse.cts)
+      keyB.vts should be <= deletePubResponse.vts
+      keyB.creator should be("demoUser")
+      keyB.acl should be("$publicCreate")
+      keyB.deletePath should be(true)
+      keyB.data should be(None)
+
+      keyD.cts should be(deletePubResponse.cts)
+      keyD.vts should be <= deletePubResponse.vts
+      keyD.creator should be("demoUser")
+      keyD.acl should be("$publicCreate")
+      keyD.deletePath should be(true)
+      keyD.data should be(None)
+    } finally {
+      session.close()
+    }
+  }
+
   test("Delete on a wildcard where nodes don't exist") {
 
     val promise = Promise[Map[Key, Data]]()
@@ -439,5 +506,21 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       session.close()
     }
   }
+
+  test("Wildcard delete on a single newer node") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      Pub(103, Seq("a", "b"), Some("z"), false, None, None).doit(session)
+      val deleteResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      deleteResponse.vts should be (0)
+      deleteResponse.cts should be (102)
+    } finally {
+      session.close()
+    }
+  }
+
   // scalastyle:on magic.number
 }
