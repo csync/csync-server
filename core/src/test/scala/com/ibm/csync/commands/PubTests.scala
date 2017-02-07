@@ -354,7 +354,7 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
   }
 
   //WILDCARD TESTS
-  
+
   test("Delete on a wildcard at the end") {
 
     val promise = Promise[Map[Key, Data]]()
