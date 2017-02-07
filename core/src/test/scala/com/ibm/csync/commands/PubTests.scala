@@ -19,7 +19,8 @@ package com.ibm.csync.commands
 import com.ibm.csync.database.Database
 import com.ibm.csync.rabbitmq.Factory
 import com.ibm.csync.session.Session
-import com.ibm.csync.types.{Key, SessionId, Token}
+import com.ibm.csync.types.ResponseCode.CannotDeleteNonExistingPath
+import com.ibm.csync.types.{ClientError, Key, SessionId, Token}
 import org.postgresql.ds.PGPoolingDataSource
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSuite, Matchers}
@@ -315,6 +316,24 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
     }
   }
 
+  test("Delete on a single node that doesn't exist") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      try {
+        //Assert this throws the correct path does not exist error
+        Pub(102, Seq("a"), Some("z"), true, None, None).doit(session)
+      } catch {
+        case e: ClientError => e.code should be (CannotDeleteNonExistingPath)
+        case e: Exception => fail()
+      }
+    } finally {
+      session.close()
+    }
+  }
+
   test("Delete on a wildcard at the end") {
 
     val promise = Promise[Map[Key, Data]]()
@@ -334,14 +353,60 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       Future.successful(())
     }
     try {
-      Pub(99, Seq("a"), Some("x"), false, None, None).doit(session)
       Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
-      Pub(101, Seq("a", "c"), Some("z"), false, None, None).doit(session)
+      Pub(101, Seq("b", "b"), Some("x"), false, None, None).doit(session) //this pub should not be found
+      Pub(102, Seq("a", "c"), Some("z"), false, None, None).doit(session)
       Sub(Seq("#")).doit(session)
-      val deletePubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      val deletePubResponse = Pub(103, Seq("a", "*"), Some("z"), true, None, None).doit(session)
       val res = promise.future.futureValue
       val keyB = res(Key("a","b"))
       val keyC = res(Key("a","c"))
+
+      keyB.cts should be(deletePubResponse.cts)
+      keyB.vts should be <= deletePubResponse.vts
+      keyB.creator should be("demoUser")
+      keyB.acl should be("$publicCreate")
+      keyB.deletePath should be(true)
+      keyB.data should be(None)
+
+      keyC.cts should be(deletePubResponse.cts)
+      keyC.vts should be <= deletePubResponse.vts
+      keyC.creator should be("demoUser")
+      keyC.acl should be("$publicCreate")
+      keyC.deletePath should be(true)
+      keyC.data should be(None)
+    } finally {
+      session.close()
+    }
+  }
+
+  test("Delete on a wildcard in the middle") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { outgoing =>
+      outgoing match {
+        case d: Data =>
+          val key = Key(d.path)
+          if (d.deletePath == true) {
+            responseData(key) = d
+          }
+          if (responseData.keySet.size == 2) {
+            promise.success(responseData.toMap)
+          }
+        case _ =>
+      }
+      Future.successful(())
+    }
+    try {
+      Pub(100, Seq("a", "b", "f"), Some("y"), false, None, None).doit(session)
+      Pub(101, Seq("a", "c", "d"), Some("x"), false, None, None).doit(session) //this pub should not be found
+      Pub(102, Seq("a", "c", "f"), Some("z"), false, None, None).doit(session)
+      Sub(Seq("#")).doit(session)
+      val deletePubResponse = Pub(103, Seq("a", "*", "f"), Some("z"), true, None, None).doit(session)
+      val res = promise.future.futureValue
+      val keyB = res(Key("a", "b", "f"))
+      val keyC = res(Key("a", "c", "f"))
 
       keyB.cts should be(deletePubResponse.cts)
       keyB.vts should be <= deletePubResponse.vts
@@ -367,9 +432,9 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
     val responseData = mutable.Map[Key, Data]()
     val session = fakeSession { _ => Future.successful(()) }
     try {
-      val thirdPubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
-      thirdPubResponse.vts should be (0)
-      thirdPubResponse.cts should be (102)
+      val deleteResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      deleteResponse.vts should be (0)
+      deleteResponse.cts should be (102)
     } finally {
       session.close()
     }
