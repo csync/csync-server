@@ -100,7 +100,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
         }
       }
       //if single delete deletes nothing, return an error
-      if ((req.path.contains("*") || req.path.contains("#")) && (highestVts.vts == 0)) {
+      if (!req.path.contains("*") && !req.path.contains("#") && (highestVts.vts == 0)) {
         CannotDeleteNonExistingPath.throwIt()
       }
       highestVts

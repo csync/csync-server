@@ -338,24 +338,38 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       Pub(100, Seq("a", "b"), Some("y"), false, None, None).doit(session)
       Pub(101, Seq("a", "c"), Some("z"), false, None, None).doit(session)
       Sub(Seq("#")).doit(session)
-      val thirdPubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      val deletePubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
       val res = promise.future.futureValue
       val keyB = res(Key("a","b"))
       val keyC = res(Key("a","c"))
 
-      keyB.cts should be(thirdPubResponse.cts)
-      keyB.vts should be <= thirdPubResponse.vts
+      keyB.cts should be(deletePubResponse.cts)
+      keyB.vts should be <= deletePubResponse.vts
       keyB.creator should be("demoUser")
       keyB.acl should be("$publicCreate")
       keyB.deletePath should be(true)
       keyB.data should be(None)
 
-      keyC.cts should be(thirdPubResponse.cts)
-      keyC.vts should be <= thirdPubResponse.vts
+      keyC.cts should be(deletePubResponse.cts)
+      keyC.vts should be <= deletePubResponse.vts
       keyC.creator should be("demoUser")
       keyC.acl should be("$publicCreate")
       keyC.deletePath should be(true)
       keyC.data should be(None)
+    } finally {
+      session.close()
+    }
+  }
+
+  test("Delete on a wildcard where nodes don't exist") {
+
+    val promise = Promise[Map[Key, Data]]()
+    val responseData = mutable.Map[Key, Data]()
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      val thirdPubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
+      thirdPubResponse.vts should be (0)
+      thirdPubResponse.cts should be (102)
     } finally {
       session.close()
     }
