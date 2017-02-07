@@ -33,6 +33,8 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
   private val creatorId = CreatorId(us.userInfo.userId)
   private val pubAcl = req.assumeACL map { ACL(_, creatorId) }
 
+//scalastyle:off method.length cyclomatic.complexity
+
   def delete(): VTS = {
     val (patternWhere, patternVals) = Pattern(req.path).asWhere
     SqlStatement.runQuery(
@@ -40,7 +42,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
       "SELECT vts,cts,aclid,creatorid,key FROM latest WHERE " + patternWhere + " AND isDeleted = false FOR UPDATE ", patternVals
 
     ) { rs =>
-      var highestVts = VTS(-1)
+      var highestVts = VTS(0)
       while (rs.next) {
         try {
           val oldVts = rs.getLong("vts")
@@ -48,9 +50,10 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
           val oldCreator = CreatorId(rs.getString("creatorid"))
           val oldAcl = ACL(rs.getString("aclid"), oldCreator)
           val oldPath = rs.getString("key")
-          if (req.cts <= oldCts) PubCtsCheckFailed.throwIt()
 
           oldAcl.checkDelete(sqlConnection, us.userInfo)
+
+          if (req.cts <= oldCts) PubCtsCheckFailed.throwIt()
 
           val newVts = SqlStatement.updateGetVts(
             sqlConnection,
@@ -64,27 +67,47 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
             acl = oldAcl.id,
             creator = oldCreator.id,
             path = oldPath.split('.'),
-            deletePath = true,
-            data = None
-          )
+            deletePath = true, data = None )
+
           if (newVts.vts > highestVts.vts) {
             highestVts = newVts
           }
         } catch {
-          case e: Exception =>
+          case e: ClientError =>
+            //delete on a single key
             if (!req.path.contains("*") && !req.path.contains("#")) {
-              throw e
+              //if we failed due to delete permissions
+              if (e.code == DeletePermissionDenied) {
+                try {
+                  val oldCreator = CreatorId(rs.getString("creatorid"))
+                  val oldAcl = ACL(rs.getString("aclid"), oldCreator)
+                  //only return permission error if user can see the node
+                  oldAcl.checkRead(sqlConnection, us.userInfo)
+                } catch {
+                  case e: ClientError =>
+                    // user can't read && failed pub check, throwing non existant check for security concerns
+                    CannotDeleteNonExistingPath.throwIt()
+                  // bubble up SQL or other errors
+                  case e: Exception => throw e
+                }
+              } else {
+                //bubble up if we failed for anything other than delete permissions on a single delete
+                throw e
+              }
             }
+            //wildcard deletes should not throw ClientErrors
+          case e: Exception => throw e
         }
       }
-      if (highestVts.vts == -1) {
-        /* TODO: Is this really needed? */
+      //if single delete deletes nothing, return an error
+      if ((req.path.contains("*") || req.path.contains("#")) && (highestVts.vts == 0)) {
         CannotDeleteNonExistingPath.throwIt()
-      } else {
-        highestVts
       }
+      highestVts
     }
   }
+
+  //scalastyle:on method.length cyclomatic.complexity
 
   //
   // Create entry in database
