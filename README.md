@@ -124,6 +124,28 @@ In case you need a new image, you need to stop and delete the old one by running
 ## Troubleshooting
 Having issues with the server? Check out the debugging article [here] (https://github.com/csync/csync-server/wiki/Debugging-a-server-problem).
 
+## Privacy Notice
+
+This web application includes code to track deployments to [IBM Bluemix](https://www.bluemix.net/) and other Cloud Foundry platforms. The following information is sent to a [Deployment Tracker](https://github.com/cloudant-labs/deployment-tracker) service on each deployment:
+
+* Space ID (`space_id`)
+* Application ID (`application_id`)
+* Number of instances
+
+### Disabling Deployment Tracking
+
+Deployment tracking can be disabled by commenting out the following code in `vertx/src/main/scala/com/ibm/csync/vertx/Main.scala`:
+
+```
+ val f: File = new File("public/package.json")
+    if (f.exists()) {
+      val is = new FileInputStream("public/package.json")
+      val json: JSONArtifact = JSON.parse(is, true)
+      logger.info(json.toString)
+      val client = new CFJavaTrackerClient().track(json.asInstanceOf[JSONObject])
+    }
+```
+
 # License
 This library is licensed under Apache 2.0. Full license text is
 available in [LICENSE](LICENSE).
