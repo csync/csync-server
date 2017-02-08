@@ -45,7 +45,10 @@ object Key {
       ResponseCode.InvalidPathFormat.throwIt(s"too long $totalLen ${parts.mkString(".")}")
     }
     val partsSeq = parts map { Part(_) }
-    new Key(partsSeq.collect { case x @ Identifier(_) => x })
+    new Key(partsSeq.collect {
+      case identifier @ Identifier(_) => identifier
+      case _ => ResponseCode.InvalidPathFormat.throwIt("Expected a concrete key, but received a key with a * or #")
+    })
 
   }
 

@@ -19,7 +19,7 @@ package com.ibm.csync.commands
 import com.ibm.csync.database.Database
 import com.ibm.csync.rabbitmq.Factory
 import com.ibm.csync.session.Session
-import com.ibm.csync.types.ResponseCode.{CannotDeleteNonExistingPath, PubCtsCheckFailed}
+import com.ibm.csync.types.ResponseCode.{CannotDeleteNonExistingPath, InvalidPathFormat, PubCtsCheckFailed}
 import com.ibm.csync.types.{ClientError, Key, SessionId, Token}
 import org.postgresql.ds.PGPoolingDataSource
 import org.scalatest.concurrent.ScalaFutures
@@ -336,8 +336,6 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
 
   test("Delete on a single node that has a newer cts") {
 
-    val promise = Promise[Map[Key, Data]]()
-    val responseData = mutable.Map[Key, Data]()
     val session = fakeSession { _ => Future.successful(()) }
     try {
       try {
@@ -495,8 +493,6 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
 
   test("Delete on a wildcard where nodes don't exist") {
 
-    val promise = Promise[Map[Key, Data]]()
-    val responseData = mutable.Map[Key, Data]()
     val session = fakeSession { _ => Future.successful(()) }
     try {
       val deleteResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
@@ -509,18 +505,30 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
 
   test("Wildcard delete on a single newer node") {
 
-    val promise = Promise[Map[Key, Data]]()
-    val responseData = mutable.Map[Key, Data]()
     val session = fakeSession { _ => Future.successful(()) }
     try {
       Pub(103, Seq("a", "b"), Some("z"), false, None, None).doit(session)
       val deleteResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
-      deleteResponse.vts should be (0)
-      deleteResponse.cts should be (102)
+      deleteResponse.vts should be(0)
+      deleteResponse.cts should be(102)
     } finally {
       session.close()
     }
   }
 
+  test("Should not be able to pub create on a wildcard") {
+
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      try{
+        Pub(103, Seq("a", "b", "*"), Some("z"), false, None, None).doit(session)
+      } catch {
+        case e: ClientError => e.code should be(InvalidPathFormat)
+        case e: Exception => fail()
+      }
+    } finally {
+      session.close()
+    }
+  }
   // scalastyle:on magic.number
 }
