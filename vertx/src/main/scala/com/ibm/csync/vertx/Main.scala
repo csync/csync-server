@@ -174,14 +174,14 @@ object Main extends LazyLogging {
     val rabbitConnection = initRabbit
 
     val port = sys.env.getOrElse("CSYNC_PORT", "6005")
-    sys.env.
+
     val serverOptions = new HttpServerOptions().setPort(port.toInt)
     val f: File = new File("public/package.json")
     if (f.exists()) {
       val is = new FileInputStream("public/package.json")
       val json: JSONArtifact = JSON.parse(is, true)
       logger.info(json.toString)
-      val client = new CFJavaTrackerClient().track("https://github.com/csync/csync-server", json.asInstanceOf[JSONObject])
+      val client = new CFJavaTrackerClient().track(json.asInstanceOf[JSONObject])
     }
 
     def loop(n: Int): Future[_] =
