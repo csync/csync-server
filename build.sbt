@@ -94,8 +94,7 @@ lazy val vertx = project.dependsOn(core)
       postgresDriver,
       "com.zaxxer" % "HikariCP" % "2.4.6",
       "org.json4s" %% "json4s-native" % "3.5.0",
-      "com.ibm.bluemix.deploymenttracker" % "cf-java-app-tracker-client" % "0.3.0",
-      "javax" % "javaee-api" % "7.0"
+      "com.ibm.bluemix.deploymenttracker" % "cf-java-app-tracker-client" % "0.3.0"
     ),
 
     libraryDependencies ++= Seq(

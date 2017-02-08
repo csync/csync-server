@@ -16,13 +16,12 @@
 
 package com.ibm.csync.vertx
 
-import java.io.{File, FileInputStream, InputStream}
-import java.util.Scanner
+import java.io.{File, FileInputStream}
 import javax.sql.DataSource
 
 import com.ibm.csync.commands.{Happy, Response}
 import com.ibm.csync.database.Database
-import com.ibm.csync.rabbitmq.{Constants, Factory}
+import com.ibm.csync.rabbitmq.Factory
 import com.ibm.csync.session.Session
 import com.ibm.csync.types.{ClientError, SessionId, Token}
 import com.rabbitmq.client.Connection
