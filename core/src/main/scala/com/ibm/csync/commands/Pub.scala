@@ -28,7 +28,6 @@ import scala.collection.mutable
 class PubState(sqlConnection: Connection, req: Pub, us: Session) {
 
   private[commands] val updates = mutable.ArrayBuffer[Data]()
-  private val pubKey = Key(req.path)
   private val pubData = req.data
   private val creatorId = CreatorId(us.userInfo.userId)
   private val pubAcl = req.assumeACL map { ACL(_, creatorId) }
@@ -115,6 +114,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
   // Precondition: no entry for that key in latest table
   //
   def create(): VTS = {
+    val pubKey = Key(req.path)
     val effectiveParentAcl = getEffectiveAcl(pubKey.parent)
     effectiveParentAcl.checkCreate(sqlConnection, us.userInfo)
     val newAcl = pubAcl.getOrElse(ACL(effectiveParentAcl.id, creatorId))
@@ -169,7 +169,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
   }
 
   def createOrUpdate(): VTS = {
-
+    val pubKey = Key(req.path)
     SqlStatement.runQuery(
       sqlConnection,
       "SELECT vts,cts,aclid,creatorid,isDeleted FROM latest WHERE key = ? FOR UPDATE",
@@ -202,6 +202,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
   }
 
   private def doUpdateInPlace(oldVts: VTS, oldCreatorId: CreatorId, oldAcl: ACL, newAclId: String) = {
+    val pubKey = Key(req.path)
     oldAcl.checkUpdate(sqlConnection, us.userInfo)
     if (oldAcl.id != newAclId || oldCreatorId.id != creatorId.id) {
       val keys = Seq(pubKey.asString, oldAcl.id, oldCreatorId.id)
@@ -254,6 +255,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
   }
 
   private def doUpdateDeleted(oldVts: VTS, oldCreatorId: CreatorId, oldAcl: ACL, newAclId: String) = {
+    val pubKey = Key(req.path)
     // move deleted record to attic
     SqlStatement.runUpdate1(sqlConnection, "DELETE FROM latest WHERE vts = ?", Seq(oldVts.vts))
     if (oldAcl.id != newAclId || oldCreatorId.id != creatorId.id) {
