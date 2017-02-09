@@ -94,7 +94,7 @@ The ACL for a key is set when the key is created by the first write performed to
 
   - `docker run -d -p 6005:6005 csync`
 
-  To enable **Google Authentication** add in a environment variable like so:
+  To enable **Google Authentication** add in an environment variable like so:
   
   - `docker run -d -p 6005:6005 -e CSYNC_GOOGLE_CLIENT_IDS="CLIENTID HERE" csync`
   
@@ -102,7 +102,11 @@ The ACL for a key is set when the key is created by the first write performed to
   
   - `docker run -d -p 6005:6005 -e CSYNC_GITHUB_ID githubIdHere -e CSYNC_GITHUB_SECRET githubSecretHere csync`
   
-  Both authentication providers can be enabled at the same time by having all environment variables specified.
+  To enable **Facebook Authentication** add in an app ID and app secret 
+  
+  - `docker run -d -p 6005:6005 -e CSYNC_FACEBOOK_ID facebookIdHere -e CSYNC_FACEBOOK_SECRET facebookSecretHere csync`
+  
+  All of the authentication providers can be enabled at the same time by having each environment variables specified.
   
   Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix
 
