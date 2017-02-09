@@ -21,6 +21,7 @@ import java.sql.{Connection => SqlConnection}
 import javax.sql.DataSource
 
 import com.ibm.csync.auth.demo.ValidateDemoToken
+import com.ibm.csync.auth.facebook.ValidateFacebookToken
 import com.ibm.csync.auth.github.ValidateGitHubToken
 import com.ibm.csync.auth.google.ValidateGoogleToken
 import com.ibm.csync.commands.{ConnectResponse, Data, Err, Response}
@@ -38,6 +39,7 @@ object Session {
   val DemoAuthProvider = "demo"
   val GoogleAuthProvider = "google"
   val GithubAuthProvider = "github"
+  val FacebookAuthProvider = "facebook"
 
   val demoToken: String = """demoToken"""
   val userToken: Regex = """demoToken\((.*)\)""".r
@@ -64,6 +66,7 @@ case class Session(ds: DataSource, uuid: String,
     authProvider match {
       case Some(GoogleAuthProvider) => ValidateGoogleToken.validate(token.s).get
       case Some(GithubAuthProvider) => ValidateGitHubToken.validate(token.s)
+      case Some(FacebookAuthProvider) => ValidateFacebookToken.validate(token.s)
       case Some(DemoAuthProvider) | None => ValidateDemoToken.validate(token.s)
       case Some(unknownProvider) =>
         logger.info(s"[validateToken]: Unknown provider ${'\"'}$unknownProvider${'\"'}")
