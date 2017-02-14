@@ -50,6 +50,7 @@ Work offline, read and write, and have data automatically sync the next time you
 Authenticate in an ever-growing number of ways from the provider of your choice. Currently the following methods are supported:
 - [Google OAuth](https://developers.google.com/identity/protocols/OAuth2) `google`
 - [Github Auth](https://developer.github.com/v3/oauth/) `github`
+- [Facebook Auth](https://developers.facebook.com/docs/facebook-login/access-tokens) `facebook`
 - Demo Login `demo`
 
 ### Demo Login
