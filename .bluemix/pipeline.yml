@@ -16,6 +16,8 @@ stages:
       echo  ${REGISTRY_URL}/csync:latest\nexport IMAGE_NAME=${REGISTRY_URL}/csync:latest\n\
       cf ic cpi ibmcom/csync:latest ${REGISTRY_URL}/csync:latest\n"
 - name: Deploy Image
+  triggers:
+  - type: stage
   properties:
   - name: IMAGE_NAME
     value: ${CCS_REGISTRY_HOST}/${NAMESPACE}/csync:latest
