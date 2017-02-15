@@ -4,7 +4,8 @@
 
 [license-svg]: https://img.shields.io/hexpm/l/plug.svg
 [license-link]: https://github.com/csync/csync-server/blob/master/LICENSE
-<a href="https://bluemix.net/deploy?repository=https://hub.jazz.net/deploy/index.html?repository=https%3A%2F%2Fgithub.com%2Fcsync%2Fcsync-server&branch=laik%2Fdeploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix"></a> 
+
+<a href="https://hub.jazz.net/deploy/index.html?repository=https%3A%2F%2Fgithub.com%2Fcsync%2Fcsync-server&branch=laik%2Fdeploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix"></a> 
 
 Contextual Sync (CSync) is an open source, real-time, continuous data synchronization service for building modern applications. The CSync data store is organized with key/values where keys have a hierarchical structure. Clients can obtain the current value for a key and any subsequent updates by listening on the key. Updates are delivered to all online clients in near-real time. Clients can also listen on a key pattern where some components contain wildcards. 
 
