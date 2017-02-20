@@ -18,7 +18,6 @@ package com.ibm.csync.auth.github
 
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
-import com.ibm.csync.auth.facebook.ValidateFacebookToken._
 import com.ibm.csync.session.UserInfo
 import com.typesafe.scalalogging.LazyLogging
 import org.json4s.native.JsonMethods._
