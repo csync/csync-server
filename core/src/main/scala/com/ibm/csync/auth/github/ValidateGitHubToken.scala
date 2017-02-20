@@ -18,8 +18,10 @@ package com.ibm.csync.auth.github
 
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
+import com.ibm.csync.auth.facebook.ValidateFacebookToken._
 import com.ibm.csync.session.UserInfo
 import com.typesafe.scalalogging.LazyLogging
+import org.json4s.native.JsonMethods._
 
 import scala.util.Try
 import scalaj.http.{Http, HttpResponse}
@@ -44,9 +46,13 @@ object ValidateGitHubToken extends LazyLogging {
     }
 
     val data = response.get.body
-    val start = data.indexOfSlice("\"id\"") + 5
-    val end = data.indexOf(':', start)
-    val id = data.slice(start, end).trim
+    val parsed = parse(data)
+    val id =(parsed \ "user" \ "id" ).values
+
+    if(id == None) {
+      logger.info(s"[validateGitHubToken]: Token validation failed for token: ${token}")
+      throw new Exception("Cannot establish session. Token validation failed")
+    }
 
     val authenticatorId = s"github:${id}"
 

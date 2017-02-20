@@ -53,6 +53,12 @@ object ValidateFacebookToken extends LazyLogging {
     }
 
     val id =(parsed \ "data" \ "user_id" ).values
+
+    if(id == None) {
+      logger.info(s"[validateFacebookToken]: Token validation failed for token: ${token}")
+      throw new Exception("Cannot establish session. Token validation failed")
+    }
+
     val authenticatorId = s"facebook:${id}"
 
     logger.debug(s"[validateToken]: Validated id token. Contains authenticatorid $authenticatorId")
