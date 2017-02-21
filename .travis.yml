@@ -12,14 +12,17 @@ dist: precise
 addons:
   postgresql: '9.5'
 services:
-- postgresql
-- rabbitmq
-- docker
+  - postgresql
+  - rabbitmq
+  - docker
 script:
-  - make image
   - ./npmgulp.sh
-  - sbt clean clean-files docker:publishLocal
+  - sbt clean clean-files docker:stage
+  - tree
   - docker tag csync milbuild/csynctest:latest
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y tree
 env:
   global:
   - secure: srelRDzGDWfGFvoSMeNHtDESATsQbÏUS3Ci/JNSG6p6WDFhJPIvZF6ErMXTM+xor4U0l3tmpnu4iQ0roHiHo2UGW7gLBn39ughNetflZilgk6IfxK9BTKd453cjQKlBrFz+O+7SgurKdHRMhGqruKq9cyGAaG5pGVsqcTG3m6wEQsxMiTGzkxKY8KEzo2hRX6xqN1v9BRFE3cwSJgmyvekpNq9eibPw+mZ6iCaxZ31qSIRS3BXOQwLRZSEMPMbeIA+Pa6YF6bkCvMtCbsbquONH9MPsClaXZjtnG2aGQwUj4tG+/8cZbFRhtAHqEqynDi3P1tM5bzWCbjkgNcTDCQtUogbkq8OVQ1Z8nqxki2aWAfV9jtCxg+Rz4/rbJtZNHg17xGm+ubK6QvXL5ExZeJwqbUttCgrEPPsLLB/kuHFZkbOH2lyz0K0F+bTLjVNh+bDH/UjE14gdcO7866qBrFdp+OTlD1nAEZOG7nsRHbj90K1dY3EhiZts4i+YOshAg5HZTOVyCbZsNUR3GNoK5JmYhMiP0vWuXa2KHfDscsgh0SNrUfrElsADJycBf5vUYh/Yl5Bni5By1uycOugc4IZCbph0GfUb3PWYuXc+IKev4aNVSZYnfNdaazVUmJCOaFh1qDZaalHOBKW6iCdIS6rmVJDJmB3Ci/wF+kghl1t/Y=
