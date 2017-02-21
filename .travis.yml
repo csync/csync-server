@@ -19,8 +19,8 @@ services:
 script:
   - ./npmgulp.sh
   - sbt clean clean-files docker:stage
-  - tree
-  - docker tag csync milbuild/csynctest:latest
+  - docker images
+	- docker build --no-cache=true -t milbuild/csynctest:latest target/docker/stage
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y tree
@@ -32,5 +32,5 @@ env:
 after_success:
   - if [ "$TRAVIS_BRANCH" == "nc/52-docker-update" ]; then
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    docker push milbuild/csynctest;
+    docker push milbuild/csynctest:latest;
     fi 
