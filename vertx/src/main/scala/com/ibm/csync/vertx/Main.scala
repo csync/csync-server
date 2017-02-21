@@ -218,12 +218,17 @@ object Main extends LazyLogging {
       override def start(): Unit = {
         val ctx = VertxContext(vertx.getOrCreateContext())
         val server = vertx.createHttpServer(serverOptions)
+        val disableDataviewer = sys.env.getOrElse("DISABLE_DATAVIEWER", "false")
 
         server.requestHandler { request =>
           def send(f: String) = {
-            val p = Promise[Void]
-            request.response.sendFile(s"public/dataviewer/$f", promiseHandler(p))
-            p.future
+            if (!disableDataviewer.toBoolean) {
+              val p = Promise[Void]
+              request.response.sendFile(s"public/dataviewer/$f", promiseHandler(p))
+              p.future
+            } else {
+              Future.successful(None)
+            }
           }
 
           (request.path() match {
