@@ -17,10 +17,8 @@ services:
   - rabbitmq
   - docker
 script:
-  - ./npmgulp.sh
-  - sbt clean clean-files docker:stage
-  - docker images
-  - docker build --no-cache=true -t milbuild/csynctest:latest target/docker/stage
+  - make image
+  - docker tag csync milbuild/csynctest:latest
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y tree
@@ -31,6 +29,6 @@ env:
   - secure: dchCvye+rwc5+EePg1QEOtLE9cSC0jRHygfwRwIHqrpCUygg3qLTM3cMsKR2oOfH5KUKUBXVlnvYvuouZ22Yf/RDSoTDtD7N4iDNS6CKK0pSg8MCCEP3jEZ1A0GOlYz+mON/LHPP/GUFIFeYi7SrVdHIaCYKeIAaPhin8Nx9VHc3Ls/rdRrT+9887l4ECidC5deM05jIJHeK/pdVmPH7fSLvi+IsmSVHrUbd9wjIMezpYot+ayu/JnBm5Qy5s4TNlH3F4iSybO4oyJy8k1gGZ8U8PtGEl7XUOLQFTe7quKbvcEwlYnT6waPPwX4+HEaPSNDXBWmLjdGBS6B+9Nf/0e41xc+jt8+qf9XX3Lx3nq1O9Cdi17krXP+ktiKWPy2dpg+hQi+B6ZGgk14BK1VaH03XvaPasyVnPX6L59lhs19eGViM+Mtatuda1MbWe7A0Mv0FHZWYE7G+hI+22JjUNQqLjQsX/WauCRt4TA7pkSN4NutVJ36ZZBvkrfuEmcWmXjfHMgLhwT4ipOleO0zJAdJdNt5wBJCb+PWLbwCRVoFG+ewOWEd4FhOX3lNJD3ITPNPLTCflkYa6wYIYd9mxDEzZTZVsPnB7rFV4deRxEnZkswcs/VnDcMFAL9s5tjltkV56Wle3FGmUqluUGiOcm7n+w8bt+WwtF/QAR3ypPQg=
 after_success:
   - if [ "$TRAVIS_BRANCH" == "nc/52-docker-update" ]; then
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    docker login -u=$DOCKER_USERNAME -p=$DOCKER_PASSWORD;
     docker push milbuild/csynctest:latest;
     fi 
