@@ -14,6 +14,7 @@ addons:
 services:
   - postgresql
   - rabbitmq
+  - docker
 script:
   - make image
 env:
