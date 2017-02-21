@@ -20,7 +20,7 @@ script:
   - ./npmgulp.sh
   - sbt clean clean-files docker:stage
   - docker images
-	- docker build --no-cache=true -t milbuild/csynctest:latest target/docker/stage
+  - docker build --no-cache=true -t milbuild/csynctest:latest target/docker/stage
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y tree
