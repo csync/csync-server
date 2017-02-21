@@ -9,6 +9,7 @@ branches:
   - nc/52-docker-update
 sudo: required
 dist: precise
+group: legacy
 addons:
   postgresql: '9.5'
 services:
