@@ -115,7 +115,8 @@ The ACL for a key is set when the key is created by the first write performed to
 
 ### Dataviewer
 
-When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md).
+When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md). 
+You also have the option to disable the dataviewer by setting the `DISABLE_DATAVIEWER` environment variable to `true`. This variable is `false` by default. 
 
 NOTE: Chrome is the only supported browser at this time. Contributions to supporting other browsers are welcome.
 
