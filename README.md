@@ -112,7 +112,7 @@ The ACL for a key is set when the key is created by the first write performed to
   All of the authentication providers can be enabled at the same time by having each environment variables specified.
   
 ### Deploy on Bluemix
-  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix.
+  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) to manually setup CSync on Bluemix.
 
   You can also try the `Deploy to Bluemix` button which creates an instance of CSync on Bluemix provided your organization already has a [namespace](https://console.ng.bluemix.net/docs/containers/container_planning_org_ov.html). 
   
