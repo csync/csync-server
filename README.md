@@ -118,12 +118,17 @@ The ACL for a key is set when the key is created by the first write performed to
   
   <a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=laik/deploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a>
   1. Login to Bluemix:
-  ![Login](images/login.png)
+  
+  <img src="images/login.png" width="400">
+
   2. Choose a naem for you application. Select your `region`, `org` and `space` and click `deploy`: 
-  ![Deploy](images/deploy.png)
+
+  <img src="images/deploy.png" width="400">
+  
   3. After the deployment is complete, the CSync instance will be listed in your [Bluemix dashboard](https://console.ng.bluemix.net/dashboard/containers).
   4. From the dashboard, click on the CSync instance and use the Public IP and port to connect to your CSync instnace:
-  ![Container Details](images/ipport.png)
+  
+  <img src="images/ipport.png" width="400">
 
   Need to handle workloads larger than what's possible with a single instance? [Check this out](https://github.com/csync/csync-server/wiki/Using-external-PostgreSQL-and-RabbitMQ-instances)
 
