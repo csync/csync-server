@@ -5,8 +5,6 @@
 [license-svg]: https://img.shields.io/hexpm/l/plug.svg
 [license-link]: https://github.com/csync/csync-server/blob/master/LICENSE
 
-<a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=laik/deploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a> 
-
 Contextual Sync (CSync) is an open source, real-time, continuous data synchronization service for building modern applications. The CSync data store is organized with key/values where keys have a hierarchical structure. Clients can obtain the current value for a key and any subsequent updates by listening on the key. Updates are delivered to all online clients in near-real time. Clients can also listen on a key pattern where some components contain wildcards. 
 
 ## Keys
@@ -81,6 +79,8 @@ The ACL for a key is set when the key is created by the first write performed to
 
 # Getting Started
 
+### Local Deployment
+
 1. Download and install [Docker], gulp and sbt:
   - docker https://www.docker.com/products/overview
   - gulp `npm install --global gulp-cli`
@@ -106,11 +106,23 @@ The ACL for a key is set when the key is created by the first write performed to
   
   Both authentication providers can be enabled at the same time by having all environment variables specified.
   
-  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix
+### Deploy on Bluemix
+  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix.
+
+  You can also try the `Deploy to Bluemix` button which creates an instance of CSync on Bluemix provided your organization already has a [namespace](https://console.ng.bluemix.net/docs/containers/container_planning_org_ov.html). 
+  
+  <a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=laik/deploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a>
+  1. Login to Bluemix:
+  ![Login](images/login.png)
+  2. Choose a naem for you application. Select your `region`, `org` and `space` and click `deploy`: 
+  ![Deploy](images/deploy.png)
+  3. After the deployment is complete, the CSync instance will be listed in your [Bluemix dashboard](https://console.ng.bluemix.net/dashboard/containers).
+  4. From the dashboard, click on the CSync instance and use the Public IP and port to connect to your CSync instnace:
+  ![Container Details](images/ipport.png)
 
   Need to handle workloads larger than what's possible with a single instance? [Check this out](https://github.com/csync/csync-server/wiki/Using-external-PostgreSQL-and-RabbitMQ-instances)
 
-### Dataviewer
+## Dataviewer
 
 When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md).
 
