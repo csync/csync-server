@@ -42,6 +42,7 @@ lazy val postgresDriver = "org.postgresql" % "postgresql" % "9.4.1208"
 lazy val logging = "org.slf4j" % "slf4j-simple" % "1.7.21"
 lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
 lazy val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.13.4"
+lazy val json4s = "org.json4s" %% "json4s-native" % "3.5.0"
 
 // Keeping the silly style thing happy
 lazy val P9000 = 9000
@@ -74,7 +75,7 @@ lazy val server = (project in file("."))
       Cmd("RUN", "sed -i.foo 's/.*PASS_MAX_DAYS.*$/PASS_MAX_DAYS  90/' /etc/login.defs"),
       Cmd("RUN", "echo 'password  requisite pam_cracklib.so retry=3 minlen=8' >> /etc/pam.d/common-password"),
       Cmd("RUN", "sed -i.foo 's/.*PASS_MIN_DAYS.*$/PASS_MIN_DAYS  1/' /etc/login.defs"),
-      Cmd("RUN", "apt-key update && apt-get update && apt-get -y install apt-utils && apt-get -y upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*"),
+      Cmd("RUN", "apt-mark hold postgresql-common && apt-key update && apt-get update && apt-get -y install apt-utils && apt-get -y upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*"),
       ExecCmd("ENTRYPOINT", "/csync.sh")))
 
 lazy val vertx = project.dependsOn(core)
@@ -91,9 +92,9 @@ lazy val vertx = project.dependsOn(core)
       "io.vertx" % "vertx-codegen" % "3.3.0",
 
       logging,
+      json4s,
       postgresDriver,
       "com.zaxxer" % "HikariCP" % "2.4.6",
-      "org.json4s" %% "json4s-native" % "3.5.0",
       "com.ibm.bluemix.deploymenttracker" % "cf-java-app-tracker-client" % "0.3.0"
     ),
 
@@ -129,8 +130,9 @@ lazy val core = project
 
       // google-api-client, version 1.22.0
       "com.google.api-client" % "google-api-client" % "1.22.0",
-      "com.google.api-client" % "google-api-client-gson" % "1.22.0"
+      "com.google.api-client" % "google-api-client-gson" % "1.22.0",
 
+      json4s
       // avoid conflict
       //xml
     ),

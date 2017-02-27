@@ -129,7 +129,7 @@ module.exports = function(shouter, worker) {
         var tempNode = node;
         while(tempNode.id != "#"){
             var parent = tree.jstree().get_node(tempNode.parent);
-            if(tempNode.original.status != "valid"){
+            if(tempNode.original.status != "valid" && tempNode.children.length == 0){
                 tree.jstree().delete_node(tempNode);
                 tempNode = parent;
                 tree.jstree().deselect_all(true);

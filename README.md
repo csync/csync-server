@@ -50,6 +50,7 @@ Work offline, read and write, and have data automatically sync the next time you
 Authenticate in an ever-growing number of ways from the provider of your choice. Currently the following methods are supported:
 - [Google OAuth](https://developers.google.com/identity/protocols/OAuth2) `google`
 - [Github Auth](https://developer.github.com/v3/oauth/) `github`
+- [Facebook Auth](https://developers.facebook.com/docs/facebook-login/access-tokens) `facebook`
 - Demo Login `demo`
 
 ### Demo Login
@@ -96,7 +97,7 @@ The ACL for a key is set when the key is created by the first write performed to
 
   - `docker run -d -p 6005:6005 csync`
 
-  To enable **Google Authentication** add in a environment variable like so:
+  To enable **Google Authentication** add in an environment variable like so:
   
   - `docker run -d -p 6005:6005 -e CSYNC_GOOGLE_CLIENT_IDS="CLIENTID HERE" csync`
   
@@ -104,7 +105,11 @@ The ACL for a key is set when the key is created by the first write performed to
   
   - `docker run -d -p 6005:6005 -e CSYNC_GITHUB_ID githubIdHere -e CSYNC_GITHUB_SECRET githubSecretHere csync`
   
-  Both authentication providers can be enabled at the same time by having all environment variables specified.
+  To enable **Facebook Authentication** add in an app ID and app secret 
+  
+  - `docker run -d -p 6005:6005 -e CSYNC_FACEBOOK_ID facebookIdHere -e CSYNC_FACEBOOK_SECRET facebookSecretHere csync`
+  
+  All of the authentication providers can be enabled at the same time by having each environment variables specified.
   
 ### Deploy on Bluemix
   Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) to manually setup CSync on Bluemix.
@@ -129,7 +134,8 @@ The ACL for a key is set when the key is created by the first write performed to
 
 ## Dataviewer
 
-When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md).
+When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md). 
+You also have the option to disable the dataviewer by setting the `DISABLE_DATAVIEWER` environment variable to `true`. This variable is `false` by default. 
 
 NOTE: Chrome is the only supported browser at this time. Contributions to supporting other browsers are welcome.
 
