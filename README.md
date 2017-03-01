@@ -121,12 +121,12 @@ The ACL for a key is set when the key is created by the first write performed to
   
   <img src="images/login.png" width="400">
 
-  2. Choose a naem for you application. Select your `region`, `org` and `space` and click `deploy`: 
+  2. Choose a name for you application. Select your `region`, `org` and `space` and click `deploy`: 
 
   <img src="images/deploy.png" width="400">
   
   3. After the deployment is complete, the CSync instance will be listed in your [Bluemix dashboard](https://console.ng.bluemix.net/dashboard/containers).
-  4. From the dashboard, click on the CSync instance and use the Public IP and port to connect to your CSync instnace:
+  4. From the dashboard, click on the CSync instance and use the Public IP and port to connect to your CSync instance:
   
   <img src="images/ipport.png" width="400">
 
