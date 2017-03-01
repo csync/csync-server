@@ -119,6 +119,8 @@ The ACL for a key is set when the key is created by the first write performed to
   <a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=laik/deploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a>
   1. Login to Bluemix:
   
+  ZACH
+
   <img src="images/login.png" width="400">
 
   2. Choose a name for you application. Select your `region`, `org` and `space` and click `deploy`: 
