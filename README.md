@@ -116,7 +116,7 @@ The ACL for a key is set when the key is created by the first write performed to
 
   You can also try the `Deploy to Bluemix` button which creates an instance of CSync on Bluemix, provided your organization already has a [namespace](https://console.ng.bluemix.net/docs/containers/container_planning_org_ov.html). 
   
-  <a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=laik/deploy_to_bluemix"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a>
+  <a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=master"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a>
   1. Login to Bluemix:
   
   <img src="images/login.png" width="400">
