@@ -1,6 +1,6 @@
 # Contextual Sync 
 [![Build Status - Master](https://travis-ci.org/csync/csync-server.svg?branch=master)](https://travis-ci.org/csync/csync-server)
-[![License][license-svg]][license-link]
+[![License][license-svg]][license-link] 
 
 [license-svg]: https://img.shields.io/hexpm/l/plug.svg
 [license-link]: https://github.com/csync/csync-server/blob/master/LICENSE
@@ -80,6 +80,8 @@ The ACL for a key is set when the key is created by the first write performed to
 
 # Getting Started
 
+### Local Deployment
+
 1. Download and install [Docker], gulp and sbt:
   - docker https://www.docker.com/products/overview
   - gulp `npm install --global gulp-cli`
@@ -109,13 +111,39 @@ The ACL for a key is set when the key is created by the first write performed to
   
   All of the authentication providers can be enabled at the same time by having each environment variables specified.
   
-  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) for instructions to run CSync on Bluemix
+### Deploy on Bluemix
+  Click [here] (https://github.com/csync/csync-server/wiki/Create-a-CSync-Instance-on-Bluemix) to manually setup CSync on Bluemix.
+
+  You can also try the `Deploy to Bluemix` button which creates an instance of CSync on Bluemix, provided your organization already has a [namespace](https://console.ng.bluemix.net/docs/containers/container_planning_org_ov.html). 
+  
+  <a href="https://bluemix.net/deploy?repository=https://github.com/csync/csync-server&branch=master"><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix" target="_blank"></a>
+  1. Login to Bluemix:
+  
+  <img src="images/login.png" width="400">
+
+  2. Choose a name for you application. Select your `region`, `org` and `space` and click `deploy`: 
+
+  <img src="images/deploy.png" width="400">
+  
+  3. After the deployment is complete, the CSync instance will be listed in your [Bluemix dashboard](https://console.ng.bluemix.net/dashboard/containers).
+  4. From the dashboard, click on the CSync instance and use the Public IP and port to connect to your CSync instance:
+  
+  <img src="images/ipport.png" width="400">
 
   Need to handle workloads larger than what's possible with a single instance? [Check this out](https://github.com/csync/csync-server/wiki/Using-external-PostgreSQL-and-RabbitMQ-instances)
 
-### Dataviewer
+## Enable SSL
 
-When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md).
+  To enable SSL mount your certificates onto `/certs` inside the container:
+
+  `docker run -v /your-cert-directory:/certs -d -p 6005:6005 ibmcom/csync`
+
+  We expect `your-cert-directory` to contain the `privkey.pem` and `cert.pem` files. We have used [certbot](https://certbot.eff.org/) to help with the process. 
+
+## Dataviewer
+
+When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md). 
+You also have the option to disable the dataviewer by setting the `DISABLE_DATAVIEWER` environment variable to `true`. This variable is `false` by default. 
 
 NOTE: Chrome is the only supported browser at this time. Contributions to supporting other browsers are welcome.
 
