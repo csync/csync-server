@@ -17,6 +17,7 @@
 package com.ibm.csync.vertx
 
 import java.io.{File, FileInputStream}
+import java.nio.file.{Paths, Files}
 import javax.sql.DataSource
 
 import com.ibm.csync.commands.{Happy, Response}
@@ -29,6 +30,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import io.vertx.core._
 import io.vertx.core.http._
+import io.vertx.core.net.PemKeyCertOptions
 import org.json4s.JValue
 import org.postgresql.ds.PGSimpleDataSource
 import com.ibm.bluemix.deploymenttracker.client.CFJavaTrackerClient
@@ -167,14 +169,19 @@ object Main extends LazyLogging {
       "vertx.logger-delegate-factory-class-name",
       classOf[io.vertx.core.logging.SLF4JLogDelegateFactory].getName
     )
-
     val vertx = Vertx.vertx()
     val ds = initPostgres
     val rabbitConnection = initRabbit
-
     val port = sys.env.getOrElse("CSYNC_PORT", "6005")
+    val serverOptions = if (Files.exists(Paths.get("/certs/privkey.pem")) && Files.exists(Paths.get("/certs/cert.pem"))) {
+      new HttpServerOptions()
+        .setPort(port.toInt)
+        .setSsl(true)
+        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("/certs/privkey.pem").setCertPath("/certs/cert.pem"))
+    } else {
+      new HttpServerOptions().setPort(port.toInt)
+    }
 
-    val serverOptions = new HttpServerOptions().setPort(port.toInt)
     val f: File = new File("public/package.json")
     if (f.exists()) {
       val is = new FileInputStream("public/package.json")

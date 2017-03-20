@@ -132,6 +132,14 @@ The ACL for a key is set when the key is created by the first write performed to
 
   Need to handle workloads larger than what's possible with a single instance? [Check this out](https://github.com/csync/csync-server/wiki/Using-external-PostgreSQL-and-RabbitMQ-instances)
 
+## Enable SSL
+
+  To enable SSL mount your certificates onto `/certs` inside the container:
+
+  `docker run -v /your-cert-directory:/certs -d -p 6005:6005 ibmcom/csync`
+
+  We expect `your-cert-directory` to contain the `privkey.pem` and `cert.pem` files. We have used [certbot](https://certbot.eff.org/) to help with the process. 
+
 ## Dataviewer
 
 When running a local CSync instance, the dataviewer can be accessed on `localhost:6005`. Currently the dataviewer supports Google Authentication and Guest Login. For details on how to use the dataviewer, checkout the [README](https://github.com/csync/csync-server/blob/master/vertx/public/dataviewer/README.md). 
