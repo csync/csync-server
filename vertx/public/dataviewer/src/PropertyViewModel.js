@@ -22,8 +22,9 @@ var editButton = $("#editButton");
 var saveButtonElem = $("#saveButton");
 var cancelButton = $("#cancelButton");
 var noDataText = $("#noDataText");
-var noACL = $("#noACL");
+var noInfo = $("#noInfo");
 var acl = $("#acl");
+var jstreeChildren = $(".jstree-children");
 var deleteButtonElem = $("#deleteButton");
 var header = document.getElementById("header-div");
 var treeDiv = document.getElementById("jstree");
@@ -42,18 +43,30 @@ module.exports = function(tree, shouter, worker) {
 
     //subscribe to tree's selected node 
     tree.selectedNode.subscribe(function (node) {
-        self.setInfo(node);
-        self.initKeyValue(node.data);
+        if(node !== null){
+            self.setInfo(node);
+            self.initKeyValue(node.data);
+            editButton.prop("hidden", false);
+            deleteButtonElem.prop("hidden", false);
+        }
+        else{
+            self.refreshProperties();
+            hideEditDelete();
+        }
     });
 
     //publish to Tree delete node
     self.deleteNode = function () {
+        if(tree.selectedNode() === null){
+            hideEditDelete();
+            return;
+        }
         var deleteObj = {
             key: tree.selectedNode().id,
             text: tree.selectedNode().text,
             type: "delete_node"
         }
-        worker.postMessage(deleteObj);  
+        worker.postMessage(deleteObj);
     }
 
     //publish to Tree add node
@@ -85,6 +98,7 @@ module.exports = function(tree, shouter, worker) {
         treeElem.css({ 'color': '#3d3d3d' });
         editButton.prop("disabled", false);
         $("#addNode").prop("disabled", false);
+        deleteButtonElem.prop("disabled", false);
         var data = {};
         saveButtonElem.hide();
         cancelButton.hide();
@@ -145,8 +159,8 @@ module.exports = function(tree, shouter, worker) {
     }
 
     self.setInfo = function(node){
-        if(node.original.acl !== undefined){
-            noACL.hide();
+        if(Object.keys(node).length !== 0 && node.original.acl !== undefined){
+            noInfo.hide();
             acl.text("ACL: " + node.original.acl);
             acl.show();
         }
@@ -168,6 +182,21 @@ module.exports = function(tree, shouter, worker) {
     function alertUser() {
         treeElem.css({ 'color': '#bdbdbd' });      
         alert("Please finish editing. Click Cancel or Save to continue!");  
+    }
+
+    self.refreshProperties = function(){
+        self.properties.removeAll();
+        acl.hide();
+        noInfo.show();
+        noDataText.show();
+        if(!jstreeChildren.has("li").length){
+            hideEditDelete();
+        }
+    }
+
+    function hideEditDelete(){
+        editButton.prop("hidden", true);
+        deleteButtonElem.prop("hidden", true);
     }
 }
 //data model for the properties table
