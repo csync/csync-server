@@ -92,6 +92,7 @@ object SessionState extends LazyLogging {
         ref.value = HasNothing
       } flatMap { _ =>
         ctx.runBlocking {
+          logger.error(s"closing session")
           session.close()
         }
       }
@@ -107,7 +108,8 @@ object SessionState extends LazyLogging {
     }
 
     override def close(ref: Ref): Future[_] = {
-      logger.info(s"closing session $session")
+      //logger.error(s"closing session $session")
+      //logger.info(s"closing session $session")
       ctx.runEventLoop {
         ref.value = HasNothing
       } flatMap { _ =>
@@ -117,7 +119,9 @@ object SessionState extends LazyLogging {
       } recover {
         case _ => ()
       } flatMap { _ =>
-        ctx.runEventLoop { ws.close() }
+        ctx.runEventLoop {
+          ws.close()
+        }
       }
     }
 

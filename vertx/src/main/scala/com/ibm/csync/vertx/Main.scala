@@ -92,10 +92,12 @@ object Main extends LazyLogging {
   // Called once per web socket connect, runs for its side effects
   def handleConnect(ctx: VertxContext, request: HttpServerRequest, ds: DataSource,
     rabbitConnection: Connection): Future[_] = {
+    logger.error("A web socket connect is being attempted")
     val ws = request.upgrade()
     ws.pause // until we know what to do with incoming messages
     val state = new SessionState.Ref(new SessionState.HasSocket(ctx, ws))
-    logger.info(s"WebSocket connection ${ws.uri()}")
+    logger.error(s"WebSocket connected/opened ${ws.uri()}")
+    //logger.info(s"WebSocket connection ${ws.uri()}")
 
     ws.closeHandler { _ =>
       state.value.closeHandler(state).recover {
@@ -116,7 +118,8 @@ object Main extends LazyLogging {
         Future {
           ResponseEnvelope(None, outgoing).asString
         } flatMap { js =>
-          logger.debug(s"sending back $js")
+          //logger.debug(s"sending back $js")
+          logger.error(s"sending back $js")
           ctx.runEventLoop { ws.writeFinalTextFrame(js) }
           // TODO: close socket
         } recover {
