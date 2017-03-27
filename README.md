@@ -99,7 +99,7 @@ The ACL for a key is set when the key is created by the first write performed to
 
   To enable **Google Authentication** add in an environment variable like so:
   
-  - `docker run -d -p 6005:6005 -e CSYNC_GOOGLE_CLIENT_IDS="CLIENTID HERE" csync`
+  - `docker run -d -p 6005:6005 -e CSYNC_GOOGLE_CLIENT_IDS googleClientIDHere csync`
   
   To enable **GitHub Authentication** add in a client ID and client Secret 
   
