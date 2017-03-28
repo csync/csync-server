@@ -93,9 +93,6 @@ module.exports = function(shouter, worker) {
             //publish to update Properties
             this.selectedNode(node);
         }
-        else{
-            this.selectedNode({});
-        }
     }
 
     this.createAndAddNode = function(incomingData){
