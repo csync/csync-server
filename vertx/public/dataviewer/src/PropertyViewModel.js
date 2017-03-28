@@ -43,7 +43,7 @@ module.exports = function(tree, shouter, worker) {
 
     //subscribe to tree's selected node 
     tree.selectedNode.subscribe(function (node) {
-        if(node !== null){
+        if(node !== null && Object.keys(node).length !== 0 ){
             self.setInfo(node);
             self.initKeyValue(node.data);
             editButton.prop("hidden", false);

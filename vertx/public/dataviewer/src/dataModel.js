@@ -93,7 +93,6 @@ worker.addEventListener('message', function(event){
                 break;
             case "delete_node":
                 feedback(data, "Successfully deleted node \""+ data.text+"\" from csync");
-                propertyView.refreshProperties();
                 break;
             case "update_data":
                 feedback(data, "Successfully saved data for node \""+ data.text+"\" to csync");

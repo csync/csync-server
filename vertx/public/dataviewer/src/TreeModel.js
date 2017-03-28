@@ -68,7 +68,8 @@ module.exports = function(shouter, worker) {
         //set selected node to parent
         var currNode = tree.jstree().get_node(incomingData.key);
         tree.jstree().delete_node(currNode);  
-        if(this.selectedNode() !== null && incomingData.key === this.selectedNode().id){
+        var jstreeChildren = $(".jstree-children");
+        if(this.selectedNode() !== null && jstreeChildren.has("li").length && incomingData.key === this.selectedNode().id){
             var parentID = this.selectedNode().parent;
             var parentNode = tree.jstree().get_node(parentID);
             tree.jstree().deselect_all(true);
