@@ -75,6 +75,9 @@ module.exports = function(shouter, worker) {
             tree.jstree().select_node(parentNode);
             this.deleteNonExsistentParents(parentNode);
         }
+        else{
+            this.selectedNode({});
+        }
     }
 
     //update data of existing node
