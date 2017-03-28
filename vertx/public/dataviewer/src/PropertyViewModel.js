@@ -140,7 +140,7 @@ module.exports = function(tree, shouter, worker) {
         self.properties.removeAll();
         noDataText.hide();
 
-        if (data === null || (typeof data === "object" && Object.keys(data).length === 0)){
+        if (data === null || data === undefined || (typeof data === "object" && Object.keys(data).length === 0)){
             noDataText.show();
             return;
         }
