@@ -25,8 +25,9 @@ module.exports = function(shouter, worker) {
     //subscribe to addNode
     shouter.subscribe(function (data) {
         data.data = {};
+        data.acl = "$PublicCreate";
         var id;
-        if(Object.keys(this.selectedNode()).length === 0){
+        if(this.selectedNode() === null || Object.keys(this.selectedNode()).length === 0){
             id = tree.jstree("create_node", "#", data, "last");
         }
         else{
@@ -67,12 +68,16 @@ module.exports = function(shouter, worker) {
         //set selected node to parent
         var currNode = tree.jstree().get_node(incomingData.key);
         tree.jstree().delete_node(currNode);  
-        if(incomingData.key === this.selectedNode().id){
+        var jstreeChildren = $(".jstree-children");
+        if(this.selectedNode() !== null && jstreeChildren.has("li").length && incomingData.key === this.selectedNode().id){
             var parentID = this.selectedNode().parent;
             var parentNode = tree.jstree().get_node(parentID);
             tree.jstree().deselect_all(true);
             tree.jstree().select_node(parentNode);
-            deleteNonExsistentParents(parentNode);
+            this.deleteNonExsistentParents(parentNode);
+        }
+        else{
+            this.selectedNode({});
         }
     }
 
@@ -119,12 +124,12 @@ module.exports = function(shouter, worker) {
                     position = getPosition(parentNode.children || [], node.id);
                     tree.jstree().create_node(parentNode, node, position);
                 }
-                restoreState(node);                    
+                this.restoreState(node);                    
             }
         }
     }
 
-    function deleteNonExsistentParents(node){
+    this.deleteNonExsistentParents = function(node){
         console.log("NODE: ", node);
         var tempNode = node;
         while(tempNode.id != "#"){
@@ -132,8 +137,13 @@ module.exports = function(shouter, worker) {
             if(tempNode.original.status != "valid" && tempNode.children.length == 0){
                 tree.jstree().delete_node(tempNode);
                 tempNode = parent;
-                tree.jstree().deselect_all(true);
-                tree.jstree().select_node(tempNode);
+                if(tempNode.parent === null){
+                    this.selectedNode(null);
+                }
+                else{
+                    tree.jstree().deselect_all(true);
+                    tree.jstree().select_node(tempNode);
+                }
             }
             else {
                 return;
@@ -162,7 +172,7 @@ module.exports = function(shouter, worker) {
         return nodes;
     }
 
-    function restoreState(node){
+    this.restoreState = function(node){
         if(jstreeState === null || jstreeState === undefined){
             return;
         }
@@ -179,6 +189,10 @@ module.exports = function(shouter, worker) {
             if(openIndex === -1){
                 tree.jstree().close_node(node.parent);
             }
+        }
+
+        if(stateCore.selected.length === 0){
+            this.selectedNode(null);
         }
     }
 }

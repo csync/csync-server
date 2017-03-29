@@ -29,15 +29,15 @@
 					<div class="container-edit">
 						<h2>Properties</h2>
 						<div class="container-button">
-							<button id="editButton" data-bind="click: editButton"><img src="./assets/edit-properties.png"></button> 
+							<button id="editButton" data-bind="click: editButton" hidden><img src="./assets/edit-properties.png"></button> 
 						</div>
 					</div>
 					<div class="acl-info"> 
 						<h3>INFO</h3>
-					    <div id="noACL">No ACL info available</div>
-						<div id="acl" hidden=true></div>
+					    <div id="noInfo">No Info.</div>
+						<div id="acl" hidden=true>ACL</div>
 						<h3>DATA</h3>		
-					    <div id="noDataText">Select an object in the Data Viewer to see its properties here.</div><br>
+					    <div id="noDataText">No Data.</div>
 					</div>
 					<form class="form" id="node_properties" data-bind="foreach: properties">
 						<strong><label id="keyValue" for="inputField" data-bind="text: keyValue" ></label></strong>
@@ -55,9 +55,9 @@
                     <div class="container-button">
                         <div class="cancel-button" id="cancelButton" hidden='true' data-bind="click: cancelButton">CANCEL</div>
                     </div>
-					<div class="container-button">
-						<div class="nodeManipulation" id="deleteButton" data-bind="click: deleteNode" disabled='true'><img src="./assets/delete.png"> Delete Node</div>
-                        <div class="nodeManipulation" id="addNode" data-bind="click: addNodeButton"><img src="./assets/add.png">Add Node</div>
+					<div id="addDeleteBtns" class="container-button">
+						<button class="nodeManipulation" id="deleteButton" data-bind="click: deleteNode" hidden><img src="./assets/delete.png"> Delete Node</button>
+                        <button class="nodeManipulation" id="addNode" data-bind="click: addNodeButton"><img src="./assets/add.png">Add Node</button>
 					</div>
 				</div>
 			</div>

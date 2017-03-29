@@ -139,7 +139,7 @@ function processData(incomingData){
 
 //Adds resize functionality to the section splitter
 Split(['#middle', '#sidebar-right'], {
-    sizes: [75, 25],
+    sizes: [70, 30],
     direction: 'horizontal',
     gutterSize: 3,
     cursor: 'col-resize'

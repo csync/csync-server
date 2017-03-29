@@ -206,15 +206,15 @@ body {
     display: flex;
     flex-direction: row;
     padding-bottom: 40px;
+    cursor: pointer;
 }
 
 button {
-    font-size: 14px;
+    font-size: 16px;
     outline: 0 none;
     padding-top: 22px;
     background-color: #f6f6f6;
     border: none;
-    text-decoration: underline;
 }
 
 input textarea {
@@ -351,6 +351,7 @@ label {
 
 #deleteButton {
     cursor: pointer;
+    margin-right: 25px;
 }
 
 .nodeManipulation img {
@@ -360,7 +361,7 @@ label {
 }
 
 #addNode {
-    margin-left: 25px;
+    margin-left: -5px;
     cursor: pointer;
 }
 
