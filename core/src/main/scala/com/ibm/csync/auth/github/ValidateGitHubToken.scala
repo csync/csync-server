@@ -46,9 +46,9 @@ object ValidateGitHubToken extends LazyLogging {
 
     val data = response.get.body
     val parsed = parse(data)
-    val id =(parsed \ "user" \ "id" ).values
+    val id = (parsed \ "user" \ "id").values
 
-    if(id == None) {
+    if (id == None) {
       logger.info(s"[validateGitHubToken]: Token validation failed for token: ${token}")
       throw new Exception("Cannot establish session. Token validation failed")
     }

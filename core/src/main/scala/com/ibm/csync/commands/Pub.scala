@@ -17,19 +17,20 @@
 package com.ibm.csync.commands
 
 import java.sql.{Connection, ResultSet}
+import javax.sql.DataSource
 
 import com.ibm.csync.database.SqlStatement
-import com.ibm.csync.session.Session
-import com.ibm.csync.types._
+import com.ibm.csync.session.{Session, UserInfo}
 import com.ibm.csync.types.ResponseCode._
+import com.ibm.csync.types._
 
 import scala.collection.mutable
 
-class PubState(sqlConnection: Connection, req: Pub, us: Session) {
+class PubState(sqlConnection: Connection, req: Pub, userInfo: UserInfo) {
 
   private[commands] val updates = mutable.ArrayBuffer[Data]()
   private val pubData = req.data
-  private val creatorId = CreatorId(us.userInfo.userId)
+  private val creatorId = CreatorId(userInfo.userId)
   private val pubAcl = req.assumeACL map { ACL(_, creatorId) }
 
   //scalastyle:off method.length cyclomatic.complexity
@@ -50,7 +51,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
             val oldAcl = ACL(rs.getString("aclid"), oldCreator)
             val oldPath = rs.getString("key")
 
-            oldAcl.checkDelete(sqlConnection, us.userInfo)
+            oldAcl.checkDelete(sqlConnection, userInfo)
 
             if (req.cts <= oldCts) PubCtsCheckFailed.throwIt()
 
@@ -82,7 +83,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
                     val oldCreator = CreatorId(rs.getString("creatorid"))
                     val oldAcl = ACL(rs.getString("aclid"), oldCreator)
                     //only return permission error if user can see the node
-                    oldAcl.checkRead(sqlConnection, us.userInfo)
+                    oldAcl.checkRead(sqlConnection, userInfo)
                   } catch {
                     case e: ClientError =>
                       // user can't read && failed pub check, throwing non existant check for security concerns
@@ -116,7 +117,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
   def create(): VTS = {
     val pubKey = Key(req.path)
     val effectiveParentAcl = getEffectiveAcl(pubKey.parent)
-    effectiveParentAcl.checkCreate(sqlConnection, us.userInfo)
+    effectiveParentAcl.checkCreate(sqlConnection, userInfo)
     val newAcl = pubAcl.getOrElse(ACL(effectiveParentAcl.id, creatorId))
     // TODO: we don't need this
     SqlStatement.runUpdate(
@@ -203,7 +204,7 @@ class PubState(sqlConnection: Connection, req: Pub, us: Session) {
 
   private def doUpdateInPlace(oldVts: VTS, oldCreatorId: CreatorId, oldAcl: ACL, newAclId: String) = {
     val pubKey = Key(req.path)
-    oldAcl.checkUpdate(sqlConnection, us.userInfo)
+    oldAcl.checkUpdate(sqlConnection, userInfo)
     if (oldAcl.id != newAclId || oldCreatorId.id != creatorId.id) {
       val keys = Seq(pubKey.asString, oldAcl.id, oldCreatorId.id)
       // changing ACL, make it look like we're deleting the old record
@@ -318,7 +319,7 @@ case class Pub(cts: Long, path: Seq[String], data: Option[String],
     val aclToReaders = mutable.Map[ACL, Seq[String]]()
 
     val (dbOutcome, newVts) = us.transaction { implicit sqlConnection =>
-      val state = new PubState(sqlConnection, this, us)
+      val state = new PubState(sqlConnection, this, us.userInfo)
 
       // perform the operation
       val vts = if (deletePath) {
@@ -342,6 +343,45 @@ case class Pub(cts: Long, path: Seq[String], data: Option[String],
       val targetGroups = aclToReaders(acl)
 
       targetGroups foreach { us.send(_, r.path, data) }
+    }
+
+    PubResponse(0, "OK", cts, newVts.vts)
+  }
+
+  def doit(rabbitConnection: com.rabbitmq.client.Connection, dataSource: DataSource, userInfo: UserInfo): PubResponse = {
+
+    // Invariants (guarded by transactions):
+    //     - a given key,acl,creatorid combination will never be present in both latest and attic
+    //     - for a given key, the entry in latest will have the largest VTS
+    //
+
+    val aclToReaders = mutable.Map[ACL, Seq[String]]()
+
+    val (dbOutcome, newVts) = Session.transaction(dataSource, { implicit sqlConnection =>
+      val state = new PubState(sqlConnection, this, userInfo)
+
+      // perform the operation
+      val vts = if (deletePath) {
+        state.delete()
+      } else {
+        state.createOrUpdate()
+      }
+
+      // perform any side-effects
+      val steps = state.updates.toList
+
+      doSideEffects(sqlConnection, aclToReaders, steps)
+
+      (steps, vts)
+    })
+
+    for (r <- dbOutcome) {
+      import boopickle.Default._
+      val acl = ACL(r.acl, CreatorId(r.creator))
+      val data = Pickle.intoBytes(r).array()
+      val targetGroups = aclToReaders(acl)
+
+      targetGroups foreach { Session.send(_, r.path, data, rabbitConnection.createChannel()) }
     }
 
     PubResponse(0, "OK", cts, newVts.vts)

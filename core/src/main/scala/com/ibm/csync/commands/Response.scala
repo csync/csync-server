@@ -16,8 +16,6 @@
 
 package com.ibm.csync.commands
 
-import com.ibm.csync.types.ResponseCode
-
 sealed trait Response {
   def kind: String
 }
@@ -32,7 +30,7 @@ case class Data(path: Seq[String], data: Option[String], deletePath: Boolean,
     acl: String, creator: String, cts: Long, vts: Long) extends Response {
   override def kind: String = "data"
 }
-case class Err(msg: String, cause: Option[String]) extends Response {
+case class Error(msg: String, cause: Option[String]) extends Response {
   override def kind: String = "error"
 }
 case class FetchResponse(response: Seq[Data]) extends Response {
