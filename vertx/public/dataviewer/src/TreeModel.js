@@ -25,7 +25,7 @@ module.exports = function(shouter, worker) {
     //subscribe to addNode
     shouter.subscribe(function (data) {
         data.data = {};
-        data.acl = "$PublicCreate";
+        data.acl = "$publicCreate";
         var id;
         if(this.selectedNode() === null || Object.keys(this.selectedNode()).length === 0){
             id = tree.jstree("create_node", "#", data, "last");
