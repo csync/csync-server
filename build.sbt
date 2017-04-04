@@ -88,8 +88,8 @@ lazy val vertx = project.dependsOn(core)
     libraryDependencies ++= Seq(
 
       // Vertx
-      "io.vertx" % "vertx-core" % "3.3.0",
-      "io.vertx" % "vertx-codegen" % "3.3.0",
+      "io.vertx" % "vertx-core" % "3.4.1",
+      "io.vertx" % "vertx-codegen" % "3.4.0",
 
       logging,
       json4s,

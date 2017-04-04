@@ -24,13 +24,14 @@ import com.ibm.csync.auth.demo.ValidateDemoToken
 import com.ibm.csync.auth.facebook.ValidateFacebookToken
 import com.ibm.csync.auth.github.ValidateGitHubToken
 import com.ibm.csync.auth.google.ValidateGoogleToken
-import com.ibm.csync.commands.{ConnectResponse, Data, Err, Response}
+import com.ibm.csync.commands.{ConnectResponse, Data, Error, Response}
 import com.ibm.csync.database.SqlStatement
 import com.ibm.csync.rabbitmq.{ExchangeInfo, QueueInfo, RoutingKey}
-import com.ibm.csync.types.{Pattern, SessionId, Token}
+import com.ibm.csync.types.ResponseCode.InvalidAuthenticatorProvider
+import com.ibm.csync.types.{ClientError, Pattern, SessionId, Token}
 import com.rabbitmq.client.AMQP.Queue.{BindOk, UnbindOk}
-import com.rabbitmq.client.{AMQP, DefaultConsumer, Envelope, Connection => RabbitConnection}
-import com.typesafe.scalalogging.LazyLogging
+import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope, Connection => RabbitConnection}
+import com.typesafe.scalalogging.{LazyLogging, Logger}
 
 import scala.concurrent.Future
 import scala.util.matching.Regex
@@ -48,6 +49,40 @@ object Session {
   def userExchangeInfo(userInfo: UserInfo): ExchangeInfo = masterExchangeInfo.id(userInfo.userId)
   def sessionQueueInfo(sessionId: SessionId): QueueInfo = QueueInfo(id = sessionId.id)
     .messageTTL(Constants.MESSAGE_TTL).queueTTL(Constants.QUEUE_TTL)
+  def auth(token: Token, authProvider: Option[String], logger: Logger): UserInfo = {
+
+    authProvider match {
+      case Some(GoogleAuthProvider) => ValidateGoogleToken.validate(token.s).get
+      case Some(GithubAuthProvider) => ValidateGitHubToken.validate(token.s)
+      case Some(FacebookAuthProvider) => ValidateFacebookToken.validate(token.s)
+      case Some(DemoAuthProvider) | None => ValidateDemoToken.validate(token.s)
+      case Some(unknownProvider) =>
+        logger.info(s"[validateToken]: Unknown provider ${'\"'}$unknownProvider${'\"'}")
+        throw ClientError(InvalidAuthenticatorProvider, Option("Cannot establish session. Token validation failed - unknown provider"))
+    }
+  }
+
+  def send(group: String, key: Seq[String], data: Array[Byte], ch: Channel): Unit = {
+    val rk = group + "." + key.mkString(".")
+    val mx = masterExchangeInfo.declare(ch)
+    ch.basicPublish(mx.info.name, rk, com.ibm.csync.rabbitmq.Constants.basicProperties, data)
+  }
+
+  def transaction[T](ds: DataSource, f: SqlConnection => T): T = {
+    val c = ds.getConnection
+    try {
+      c.setAutoCommit(false)
+      val x = f(c)
+      c.commit()
+      x
+    } catch {
+      case e: Throwable =>
+        c.rollback()
+        throw e
+    } finally {
+      c.close()
+    }
+  }
 }
 
 case class Session(ds: DataSource, uuid: String,
@@ -62,28 +97,24 @@ case class Session(ds: DataSource, uuid: String,
 
   private val ch = connection.createChannel()
 
-  val userInfo: UserInfo = try {
-    authProvider match {
-      case Some(GoogleAuthProvider) => ValidateGoogleToken.validate(token.s).get
-      case Some(GithubAuthProvider) => ValidateGitHubToken.validate(token.s)
-      case Some(FacebookAuthProvider) => ValidateFacebookToken.validate(token.s)
-      case Some(DemoAuthProvider) | None => ValidateDemoToken.validate(token.s)
-      case Some(unknownProvider) =>
-        logger.info(s"[validateToken]: Unknown provider ${'\"'}$unknownProvider${'\"'}")
-        throw new Exception("Cannot establish session. Token validation failed - unknown provider")
+  val userInfo: UserInfo =
+    try {
+      Session.auth(token, authProvider, logger)
+    } catch {
+      case exception: ClientError =>
+        outgoing(Error(msg = exception.msg.get, cause = None))
+        throw exception
+      case ex: Exception =>
+        outgoing(Error(msg = ex.getMessage, cause = None))
+        throw ex
     }
-  } catch {
-    case ex: Exception =>
-      outgoing(Err(msg = ex.getMessage, cause = None))
-      throw ex
-  }
 
-  private val canRead = transaction { sqlConnection =>
+  private val canRead = Session.transaction(ds, { sqlConnection =>
     Seq("$world", userInfo.userId) ++ SqlStatement.queryResult(
       sqlConnection,
       "select groupid from membership where userid = ?", Seq(userInfo.userId)
     ) { rs => rs.getString(1) }
-  }
+  })
 
   private val mx = masterExchangeInfo.declare(ch)
   private val ux = userExchangeInfo(userInfo).declare(ch)
@@ -113,8 +144,7 @@ case class Session(ds: DataSource, uuid: String,
     ch.queueUnbind(uq.info.name, ux.info.name, "*." + pattern.asString)
 
   def send(group: String, key: Seq[String], data: Array[Byte]): Unit = {
-    val rk = group + "." + key.mkString(".")
-    ch.basicPublish(mx.info.name, rk, com.ibm.csync.rabbitmq.Constants.basicProperties, data)
+    Session.send(group, key, data, ch)
   }
 
   def close(): Unit = {
@@ -125,21 +155,8 @@ case class Session(ds: DataSource, uuid: String,
       case e: Throwable => logger.error(s"cancel for session $sessionId", e)
     }
   }
-
   def transaction[T](f: SqlConnection => T): T = {
-    val c = ds.getConnection
-    try {
-      c.setAutoCommit(false)
-      val x = f(c)
-      c.commit()
-      x
-    } catch {
-      case e: Throwable =>
-        c.rollback()
-        throw e
-    } finally {
-      c.close()
-    }
+    Session.transaction(ds, f)
   }
 
 }

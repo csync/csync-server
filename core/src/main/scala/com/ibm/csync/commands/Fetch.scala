@@ -16,11 +16,45 @@
 
 package com.ibm.csync.commands
 
+import javax.sql.DataSource
+
 import com.ibm.csync.database._
-import com.ibm.csync.session.Session
+import com.ibm.csync.session.{UserInfo, Session}
+import com.ibm.csync.types.{Pattern, Key}
 
 import scala.collection.mutable
 
+object Fetch {
+
+  def fetchRest(dataSource: DataSource, userInfo: UserInfo, path: Seq[String]): FetchResponse = {
+
+    val updates = mutable.ArrayBuffer[Data]()
+
+    Session.transaction(dataSource, { sqlConnection =>
+      val acls = com.ibm.csync.commands.getAcls(sqlConnection, userInfo)
+      val aclWhere = List.fill(acls.length)("?").mkString(",")
+      val (patternWhere, patternVals) = Pattern(path).asWhere
+
+      // sort vts list (will most likely be ordered, but just to be sure)
+      val queryVals = patternVals ++ acls ++ Seq(userInfo.userId)
+      updates ++= SqlStatement.queryResult(
+        sqlConnection,
+        s"""
+            SELECT vts,cts,key,aclid,creatorid,isDeleted,data FROM latest
+                WHERE $patternWhere AND (aclid IN ($aclWhere) OR creatorid = ?)
+          """,
+        queryVals
+      ) { rs =>
+          Data(
+            vts = rs.getLong("vts"), cts = rs.getLong("cts"), path = rs.getString("key").split('.'),
+            acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = rs.getBoolean("isdeleted"),
+            data = Option(rs.getString("data"))
+          )
+        }
+    })
+    FetchResponse(updates)
+  }
+}
 case class Fetch(vts: Seq[Long]) extends Command {
 
   //override def shortString: String = s"$vts"

@@ -18,6 +18,8 @@ package com.ibm.csync.vertx
 
 import com.ibm.csync.commands
 import com.ibm.csync.commands._
+import com.ibm.csync.types.ClientError
+import com.ibm.csync.types.ResponseCode.InvalidSchemaJSON
 import org.json4s.{Extraction, JValue, NoTypeHints}
 import org.json4s.native.Serialization
 
@@ -64,6 +66,12 @@ case class RequestEnvelope(version: Option[Int], kind: String,
 
 object RequestEnvelope extends Formats {
 
-  def apply(s: String): RequestEnvelope = Serialization.read[RequestEnvelope](s).check()
+  def apply(s: String): RequestEnvelope =
+    try {
+      Serialization.read[RequestEnvelope](s).check()
+    } catch {
+      case e: Exception =>
+        throw ClientError(InvalidSchemaJSON, None)
+    }
 
 }

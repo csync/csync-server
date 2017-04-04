@@ -17,6 +17,8 @@
 package com.ibm.csync.auth.demo
 
 import com.ibm.csync.session.{Session, UserInfo}
+import com.ibm.csync.types.ClientError
+import com.ibm.csync.types.ResponseCode.InvalidAuthenticatorId
 import com.typesafe.scalalogging.LazyLogging
 
 object ValidateDemoToken extends LazyLogging {
@@ -29,7 +31,7 @@ object ValidateDemoToken extends LazyLogging {
       case Session.userToken(user) => UserInfo(user)
       case _ =>
         logger.debug(s"Token validation failed for token: $token")
-        throw new Exception("Cannot establish session. Token validation failed")
+        throw ClientError(InvalidAuthenticatorId, Option("Cannot establish session. Token validation failed"))
     }
   }
 }

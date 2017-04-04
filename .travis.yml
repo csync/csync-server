@@ -15,14 +15,16 @@ services:
 - postgresql
 - rabbitmq
 - docker
-script:
-- make image
-- docker tag csync ibmcom/csync:latest
 env:
   global:
   - secure: AhxcEDP6QCM0H2txbT8b7J+7b0Ho9K5Rqik1cTc69+WfU8DPiri9g7SXKpVMxqya2e/fsvHTnTTTSTpyuj1YKElEFYZyqrTgqxkDao1n6K1nHh8dVab3qMW6uM72CfaE/7IbaHUN5gdKQFykGt+Z0jsBZpVt06clWXzv+979N/AxAtDpd+M9fSCEPX2P8MEBBoNX/q4VY9+pYvn8iVeSZ6piSV1sKCxitKVUZXk8TTcuiYu3f1YVCdzn+QaMaQIo/89LyyAsjGPKLMSvwwmNvBmQ8+dxoI93Fml4SiXodSKEDILQNQw1NjYt+0xwxuWRTlpGbwWdxRIoL4ki8DjJ3uBNcfTNP1C/tK8hVLuQxxD5Wn5BbvyHwcw9A2H+wLufVRxeMirsdprASHiqRsz2Xf3jKdRE80aSpwnaS+X3TvO23NCys46dcs+WYQI5K2EwtKq0oWHbXb/dc2caVruxqxEtbB6R5IzWPym2G9bg394huqkxSIB1HDFMpnUIk62itrzV0ggTv2OQ9qXZUg8ytS1hYG7lzJKZRRDttJyFfG4wSdIoeUs569+UpFfeiNoyEHU1XTHT+IJEiGd73Ucu+lzXvTOazqIeeFhs+tarfOp5j3M0HhA3IfC99OlLElqIZRYwe1I2gjaeZJLZdKnyUqfAB45SHLNCC1BG2OGbuxQ=
   - secure: WlnBYYy/hkjMH8RlMnl7OCp64Hd41Xkfn3RqEpKB6yPPtCmyLMmtG5LRFuNraGhtVNTQbvcF1ZtHE4dYeIsctjtCWbhi/N80tjgatccfLUQNeHPrtOZlncRFNuJyhEgmYlmsDSNT1vrWsO9RNUZcxFrvI3u7Ve87kteesX0n+AZzD7OQXnlW+8eMlEtKHbOAptN6fqEChf+mua+qx4nK+9mxJkUwtLKjuE/DEPU8J9DkJ7oURRIyq3dz9rS258izJ3HL+0CKhcV9Gv7oqIgkS8FmJokfOJp6DgIezn6ybtPFs8Gs56MYf8buMWuij8aLvO3dYAXnuvLDfiPOhxe+9VVL3H942hSA2L2BUwxbWhiS3Xp3gnIzjtM9QleCUgVKj73jFXtUwY9EQEPr/WYZKC5mDOfxSE/Zy077+BwfAk9aac5UD4ubVQFO6nGN30pg2GQclSa+yNK4ThZavOZlZjrM2QU/eAlCZbR5PEzHG1KoGsLeQPtuGRBBqgWM+pC1WagGoczCjcvRh/1cEP+UiWksTzmsiN1ajq9t1LF9nWvgKQuhLyaXalFYX92AmGGlPGLvBFBdyMdCBEFW/5Piz1XWItC83kTxD/sgYn625vTJK7a84I5uBypZOJQfV8P6u48ixNvr79ZGxLiz+ZiAwmcW93zGtKE8ThkEv0G1vF0=
   - secure: VBbOFpHCkiCPL2FupcmbTMqpHT89UPja109qkfXUE94N3ZJHTFK6O3RJr7B0bSOusqPc62KRl3NvVBxypDSMemVovidqufVZPNoeiHYOsdcsa3NFNMDpqCe+iUPr7ZcBWsCgBJDUIQ6ciEOrWFnWYXjO08WxvLAmQLhGx1w//3TzNi7d1XcJgWy6DuHEP7mojH+jNjROqc56pZiwOj5Bu1XGHZsutTApgvq9fACXldfK48di9FkCSANx+bW2SWe5JsT2yW5NQobkRQ5XYK0nriFYN7Jr4SP6ZJmUqFCN8/NQk3FH6CkjQ8HhCILG8V2/H81kENt60QL/0oVsI3nH/S5f7G2Acoes5Y/H7EhuTGk2EIStrtir+volNLLnHZEb9G9Nqq0HIlTZIgRobB3bp4+iKfjlsrTkhrtqnlICWu6KEL9g4avBtZhQBkJe4NLUSoZtOqqXPFroTAWBpLpdSSX1QOfYKb0Mn2+FGBFpY0o9UyH+D/U8ZKQCBWRQ4EZRS9Ty/U63ueCnXLI0pzTjcETxlfSIzQmlvOhJU/XLD6X6aCb0Yznfu7i77tV2iwUDkXJSH9NYnk3Lo1vGtemNY79er1eTbrPi9Y29IjUFwbsbMwUuf7yCNn/tJstZ4nHUktwE2JTTCpgdqq20SCEvmcH1/lXG7TYVklaAWuhVgNE=
 after_success:
-- docker login -u=$DOCKER_USER -p=$DOCKER_PASSWORD
-- docker push ibmcom/csync:latest
+#TRAVIS_BRANCH works weirdly on PR's. On a PR it returns the destination request which is not what we want
+# See https://github.com/travis-ci/travis-ci/issues/6652
+- export REAL_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH};
+- if [ "$REAL_BRANCH" = "master" ]; then make image; fi
+- if [ "$REAL_BRANCH" = "master" ]; then docker tag csync ibmcom/csync:latest; fi
+- if [ "$REAL_BRANCH" = "master" ]; then docker login -u=$DOCKER_USER -p=$DOCKER_PASSWORD; fi
+- if [ "$REAL_BRANCH" = "master" ]; then docker push ibmcom/csync:latest; fi
