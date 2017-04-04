@@ -71,7 +71,6 @@ object RequestEnvelope extends Formats {
       Serialization.read[RequestEnvelope](s).check()
     } catch {
       case e: Exception =>
-        print(e.getMessage)
         throw ClientError(InvalidSchemaJSON, None)
     }
 
