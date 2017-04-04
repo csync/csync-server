@@ -162,6 +162,12 @@ function setupJSTree(){
         .bind("rename_node.jstree", function (event, data) {
             shouter.notifySubscribers(data.node, "afterRename");
         })
+        .on('close_node.jstree', function (event, data){
+            if(tree.selectedNode() !== undefined && data.node.children_d.indexOf(tree.selectedNode().id) !== -1){
+                tree.deselectAll();
+                tree.selectedNode({});
+            }
+        })
         .on('select_node.jstree', function(event, data){
             if (data.instance.is_leaf(data.node)) {
                 deleteButtonElem.prop("disabled", false);
