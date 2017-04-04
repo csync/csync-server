@@ -378,8 +378,8 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       Sub(Seq("#")).doit(session)
       val deletePubResponse = Pub(103, Seq("a", "*"), Some("z"), true, None, None).doit(session)
       val res = promise.future.futureValue
-      val keyB = res(Key("a","b"))
-      val keyC = res(Key("a","c"))
+      val keyB = res(Key("a", "b"))
+      val keyC = res(Key("a", "c"))
 
       keyB.cts should be(deletePubResponse.cts)
       keyB.vts should be <= deletePubResponse.vts
@@ -470,8 +470,8 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
       Sub(Seq("#")).doit(session)
       val deletePubResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
       val res = promise.future.futureValue
-      val keyB = res(Key("a","b"))
-      val keyD = res(Key("a","d"))
+      val keyB = res(Key("a", "b"))
+      val keyD = res(Key("a", "d"))
 
       keyB.cts should be(deletePubResponse.cts)
       keyB.vts should be <= deletePubResponse.vts
@@ -496,8 +496,8 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
     val session = fakeSession { _ => Future.successful(()) }
     try {
       val deleteResponse = Pub(102, Seq("a", "*"), Some("z"), true, None, None).doit(session)
-      deleteResponse.vts should be (0)
-      deleteResponse.cts should be (102)
+      deleteResponse.vts should be(0)
+      deleteResponse.cts should be(102)
     } finally {
       session.close()
     }
@@ -520,7 +520,7 @@ class PubTests extends FunSuite with Matchers with ScalaFutures {
 
     val session = fakeSession { _ => Future.successful(()) }
     try {
-      try{
+      try {
         Pub(103, Seq("a", "b", "*"), Some("z"), false, None, None).doit(session)
       } catch {
         case e: ClientError => e.code should be(InvalidPathFormat)

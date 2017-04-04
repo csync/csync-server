@@ -25,7 +25,8 @@ import com.ibm.bluemix.deploymenttracker.client.CFJavaTrackerClient
 import com.ibm.csync.commands._
 import com.ibm.csync.database.Database
 import com.ibm.csync.rabbitmq.Factory
-import com.ibm.csync.session.Session
+import com.ibm.csync.session.{Session, UserInfo}
+import com.ibm.csync.types.ResponseCode.InvalidSchemaJSON
 import com.ibm.csync.types.{ClientError, SessionId, Token}
 import com.ibm.json.java.{JSON, JSONArtifact, JSONObject}
 import com.rabbitmq.client.Connection
@@ -100,7 +101,16 @@ object Main extends LazyLogging {
 
       val provider = Option(request.getParam("authProvider"))
       val token = Token(request.getParam("token"))
-      val userInfo = Session.auth(token, provider, logger)
+      var userInfo: UserInfo = null
+      try {
+        userInfo = Session.auth(token, provider, logger)
+      } catch {
+        case e: ClientError =>
+          logger.error(e.toString)
+          request.response().putHeader("Content-Type", "application/json")
+          request.response().setStatusCode(400).end("{\"error\" : \"" + e.code.name + "\"}")
+          Future.failed(e)
+      }
 
       implicit val formats = DefaultFormats + FieldSerializer[PubResponse]() + FieldSerializer[FetchResponse]() + FieldSerializer[Data]()
       if (request.method().equals(HttpMethod.POST)) {
@@ -111,19 +121,27 @@ object Main extends LazyLogging {
           request.response().putHeader("Content-Type", "application/json")
           request.response().end(Serialization.write(pubResponse))
           Future.successful(pubResponse)
-
         } catch {
           case e: ClientError =>
             logger.error(e.toString)
             request.response().putHeader("Content-Type", "application/json")
             request.response().setStatusCode(400).end("{\"error\" : \"" + e.code.name + "\"}")
             Future.failed(e)
+          case e: Exception =>
+            logger.error(e.toString)
+            val error = ClientError(InvalidSchemaJSON, None)
+            request.response().putHeader("Content-Type", "application/json")
+            request.response().setStatusCode(400).end("{\"error\" : \"" + error.code.name + "\"}")
+            Future.failed(e)
         }
 
       } else if (request.method().equals(HttpMethod.GET)) {
 
+        if (!request.params().contains("path")) {
+          request.response().putHeader("Content-Type", "application/json")
+          request.response().setStatusCode(400).end("{\"error\" : \"path is required\"}")
+        }
         val path = URLDecoder.decode(request.getParam("path"), "UTF-8").split('.')
-        path.foreach(println)
 
         try {
           val fetchResponse = Fetch.fetchRest(dataSource, userInfo, path)
@@ -147,7 +165,8 @@ object Main extends LazyLogging {
   def handleConnect(ctx: VertxContext, request: HttpServerRequest, ds: DataSource,
     rabbitConnection: Connection): Future[_] = {
     val ws = request.upgrade()
-    ws.pause // until we know what to do with incoming messages
+    ws.pause
+    // until we know what to do with incoming messages
     val state = new SessionState.Ref(new SessionState.HasSocket(ctx, ws))
     logger.info(s"WebSocket connection ${ws.uri()}")
 
@@ -287,9 +306,16 @@ object Main extends LazyLogging {
           def send(f: String) = {
             if (!disableDataviewer.toBoolean) {
               val p = Promise[Void]
-              request.response.sendFile(s"vertx/public/dataviewer/$f", promiseHandler(p))
+              if (Files.exists(Paths.get(s"public/dataviewer/$f"))) {
+                request.response.sendFile(s"public/dataviewer/$f", promiseHandler(p))
+              } else {
+                request.response.setStatusCode(404)
+                request.response.end()
+              }
               p.future
             } else {
+              request.response.setStatusCode(404)
+              request.response.end()
               Future.successful(None)
             }
           }

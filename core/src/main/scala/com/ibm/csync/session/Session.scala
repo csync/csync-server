@@ -27,9 +27,10 @@ import com.ibm.csync.auth.google.ValidateGoogleToken
 import com.ibm.csync.commands.{ConnectResponse, Data, Error, Response}
 import com.ibm.csync.database.SqlStatement
 import com.ibm.csync.rabbitmq.{ExchangeInfo, QueueInfo, RoutingKey}
-import com.ibm.csync.types.{Pattern, SessionId, Token}
+import com.ibm.csync.types.ResponseCode.InvalidAuthenticatorProvider
+import com.ibm.csync.types.{ClientError, Pattern, SessionId, Token}
 import com.rabbitmq.client.AMQP.Queue.{BindOk, UnbindOk}
-import com.rabbitmq.client.{AMQP, Channel, Connection => RabbitConnection, DefaultConsumer, Envelope}
+import com.rabbitmq.client.{AMQP, Channel, DefaultConsumer, Envelope, Connection => RabbitConnection}
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 
 import scala.concurrent.Future
@@ -57,7 +58,7 @@ object Session {
       case Some(DemoAuthProvider) | None => ValidateDemoToken.validate(token.s)
       case Some(unknownProvider) =>
         logger.info(s"[validateToken]: Unknown provider ${'\"'}$unknownProvider${'\"'}")
-        throw new Exception("Cannot establish session. Token validation failed - unknown provider")
+        throw ClientError(InvalidAuthenticatorProvider, Option("Cannot establish session. Token validation failed - unknown provider"))
     }
   }
 
@@ -100,6 +101,9 @@ case class Session(ds: DataSource, uuid: String,
     try {
       Session.auth(token, authProvider, logger)
     } catch {
+      case exception: ClientError =>
+        outgoing(Error(msg = exception.msg.get, cause = None))
+        throw exception
       case ex: Exception =>
         outgoing(Error(msg = ex.getMessage, cause = None))
         throw ex

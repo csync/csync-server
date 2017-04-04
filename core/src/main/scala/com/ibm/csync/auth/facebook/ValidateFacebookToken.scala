@@ -19,6 +19,8 @@ package com.ibm.csync.auth.facebook
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
 import com.ibm.csync.session.UserInfo
+import com.ibm.csync.types.ClientError
+import com.ibm.csync.types.ResponseCode.InvalidAuthenticatorId
 import com.typesafe.scalalogging.LazyLogging
 import org.json4s._
 import org.json4s.native.JsonMethods._
@@ -41,7 +43,7 @@ object ValidateFacebookToken extends LazyLogging {
 
     if (response.isFailure || response.get.code != 200) {
       logger.info(s"[validateFacebookToken]: Token validation failed for token: ${token}")
-      throw new Exception("Cannot establish session. Token validation failed")
+      throw ClientError(InvalidAuthenticatorId, Option("Cannot establish session. Token validation failed"))
     }
 
     val data = response.get.body
@@ -49,14 +51,14 @@ object ValidateFacebookToken extends LazyLogging {
 
     if ((parsed \ "data" \ "is_valid").values.equals(false)) {
       logger.info(s"[validateFacebookToken]: Token validation failed for token: ${token}")
-      throw new Exception("Cannot establish session. Token validation failed")
+      throw ClientError(InvalidAuthenticatorId, Option("Cannot establish session. Token validation failed"))
     }
 
     val id = (parsed \ "data" \ "user_id").values
 
     if (id == None) {
       logger.info(s"[validateFacebookToken]: Token validation failed for token: ${token}")
-      throw new Exception("Cannot establish session. Token validation failed")
+      throw ClientError(InvalidAuthenticatorId, Option("Cannot establish session. Token validation failed"))
     }
 
     val authenticatorId = s"facebook:${id}"

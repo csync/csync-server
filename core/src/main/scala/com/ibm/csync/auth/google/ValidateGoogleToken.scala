@@ -22,6 +22,8 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
 import com.ibm.csync.session.UserInfo
+import com.ibm.csync.types.ClientError
+import com.ibm.csync.types.ResponseCode.InvalidAuthenticatorId
 import com.typesafe.scalalogging.LazyLogging
 
 object ValidateGoogleToken extends LazyLogging {
@@ -55,7 +57,7 @@ object ValidateGoogleToken extends LazyLogging {
       val payload = idToken.getPayload
       val expires = payload.getExpirationTimeSeconds
       if ((expires * 1000) < System.currentTimeMillis()) {
-        throw new Exception("Cannot establish session. Token validation failed -- token expired.")
+        throw ClientError(InvalidAuthenticatorId, Option("Cannot establish session. Token validation failed"))
       }
       val authenticatorId = s"${payload.getIssuer}:${payload.getSubject}"
       val email: Option[String] = Option(payload.get("email")) map {
