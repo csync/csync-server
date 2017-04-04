@@ -94,7 +94,7 @@ object Main extends LazyLogging {
     }
 
   def handleRestCalls(ctx: VertxContext, request: HttpServerRequest, dataSource: DataSource,
-                      rabbitConnection: Connection, body: String): Future[_] = {
+    rabbitConnection: Connection, body: String): Future[_] = {
 
     ctx.runBlocking {
 
@@ -105,7 +105,6 @@ object Main extends LazyLogging {
       implicit val formats = DefaultFormats + FieldSerializer[PubResponse]() + FieldSerializer[FetchResponse]() + FieldSerializer[Data]()
       if (request.method().equals(HttpMethod.POST)) {
 
-
         try {
           val pub = RequestEnvelope(body).asRequest.asInstanceOf[Pub]
           val pubResponse = pub.doit(rabbitConnection, dataSource, userInfo)
@@ -114,7 +113,8 @@ object Main extends LazyLogging {
           Future.successful(pubResponse)
 
         } catch {
-          case e: ClientError => logger.error(e.toString)
+          case e: ClientError =>
+            logger.error(e.toString)
             request.response().putHeader("Content-Type", "application/json")
             request.response().setStatusCode(400).end("{\"error\" : \"" + e.code.name + "\"}")
             Future.failed(e)
@@ -131,7 +131,8 @@ object Main extends LazyLogging {
           request.response.end(Serialization.write(fetchResponse))
 
         } catch {
-          case e: ClientError => logger.error(e.toString)
+          case e: ClientError =>
+            logger.error(e.toString)
             request.response().putHeader("Content-Type", "application/json")
             request.response().setStatusCode(400).end("{\"error\" : \"" + e.code.name + "\"}")
             Future.failed(e)
@@ -144,7 +145,7 @@ object Main extends LazyLogging {
 
   // Called once per web socket connect, runs for its side effects
   def handleConnect(ctx: VertxContext, request: HttpServerRequest, ds: DataSource,
-                    rabbitConnection: Connection): Future[_] = {
+    rabbitConnection: Connection): Future[_] = {
     val ws = request.upgrade()
     ws.pause // until we know what to do with incoming messages
     val state = new SessionState.Ref(new SessionState.HasSocket(ctx, ws))
@@ -273,7 +274,7 @@ object Main extends LazyLogging {
   }
 
   private def deploy(vertx: Vertx, ds: DataSource, rabbitConnection: Connection,
-                     serverOptions: HttpServerOptions): Future[HttpServer] = {
+    serverOptions: HttpServerOptions): Future[HttpServer] = {
     val out = Promise[HttpServer]
 
     vertx.deployVerticle(new AbstractVerticle {

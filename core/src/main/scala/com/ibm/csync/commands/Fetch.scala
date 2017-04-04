@@ -16,7 +16,6 @@
 
 package com.ibm.csync.commands
 
-
 import javax.sql.DataSource
 
 import com.ibm.csync.database._
@@ -27,11 +26,11 @@ import scala.collection.mutable
 
 object Fetch {
 
-  def fetchRest(dataSource: DataSource, userInfo: UserInfo, path : Seq[String]): FetchResponse = {
+  def fetchRest(dataSource: DataSource, userInfo: UserInfo, path: Seq[String]): FetchResponse = {
 
     val updates = mutable.ArrayBuffer[Data]()
 
-    Session.transaction (dataSource, { sqlConnection =>
+    Session.transaction(dataSource, { sqlConnection =>
       val acls = com.ibm.csync.commands.getAcls(sqlConnection, userInfo)
       val aclWhere = List.fill(acls.length)("?").mkString(",")
       val (patternWhere, patternVals) = Pattern(path).asWhere
@@ -46,12 +45,12 @@ object Fetch {
           """,
         queryVals
       ) { rs =>
-        Data(
-          vts = rs.getLong("vts"), cts = rs.getLong("cts"), path = rs.getString("key").split('.'),
-          acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = rs.getBoolean("isdeleted"),
-          data = Option(rs.getString("data"))
-        )
-      }
+          Data(
+            vts = rs.getLong("vts"), cts = rs.getLong("cts"), path = rs.getString("key").split('.'),
+            acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = rs.getBoolean("isdeleted"),
+            data = Option(rs.getString("data"))
+          )
+        }
     })
     FetchResponse(updates)
   }
@@ -61,7 +60,6 @@ case class Fetch(vts: Seq[Long]) extends Command {
   //override def shortString: String = s"$vts"
 
   val FETCH_GROUP_SIZE = 10
-
 
   override def doit(us: Session): FetchResponse = {
     val updates = mutable.ArrayBuffer[Data]()
