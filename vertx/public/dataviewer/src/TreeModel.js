@@ -52,7 +52,7 @@ module.exports = function(shouter, worker) {
         var parentNode = tree.jstree().get_node(node.parent);
         var position = getPosition(parentNode.children || [], node.id);
         tree.jstree().move_node(node, parentNode, position);
-        tree.jstree().deselect_all(true);
+        this.deselectAll();
         tree.jstree().select_node(newId);
         var writeObj = {
             key: this.selectedNode().id,
@@ -195,4 +195,9 @@ module.exports = function(shouter, worker) {
             this.selectedNode(null);
         }
     }
+
+    this.deselectAll = function(){
+        tree.jstree().deselect_all(true);
+    }
+    
 }
