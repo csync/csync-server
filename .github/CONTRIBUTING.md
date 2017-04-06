@@ -64,7 +64,7 @@ To generate a human readable report, run `sbt coverageReport`. This will appear 
 
 | Name         | Version |Author   |License | Release Date | Verification Code | URL |
 |--------------|---------|---------|--------|--------------|-------------------|-----|
-| vert.x framework<br>- vertx-core_3.3.0<br>- vertx-codegen_3.3.0<br>- | 3.3.0 | | Apache 2.0 | n/a | n/a |
+| vert.x framework<br>- vertx-core_3.4.1<br>- vertx-codegen_3.4.0<br> | 3.4.0 | | Apache 2.0 | n/a | io.vertx |
 | scala-logging | 3.4.0 | | Apache 2.0 | n/a | n/a | com.typesafe.scala-logging:scala-logging |
 | amqp-client | 3.6.2 | Pivotal | Apache 2.0 | n/a | n/a | com.rabbitmq:amqp-client |
 | postgresql | 9.4-1208-jdbc41 | | PostgreSQL License | n/a | n/a | org.postgresql:postgresql |
