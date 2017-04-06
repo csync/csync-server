@@ -78,6 +78,75 @@ CSync provides eight "static" ACLs that can be used to provide any combination o
 
 The ACL for a key is set when the key is created by the first write performed to the key. If the write operation specified an ACL, then this ACL is attached to the key. If no ACL was specified in the write, then the key inherits the ACL from its closest ancestor in the key space—its parent if the parent exists, else its grandparent if that key exists, possibly all the way back to the root key. The ACL of the root key is `PublicCreate`, which permits any user to create a child key but does not allow public read or write access.
 
+## REST API
+
+### Create, Update or Delete a Key
+A POST to the `/key?authenticationProvider=&token=` endpoint will add, update, or delete the value of a key inside the database. It expects a JSON body in the following format: 
+```{"kind":"pub",
+"version" : 15,
+"payload" : {
+ "cts": 1491485727000,
+ "path" : ["a", "b", "c"],
+ "data" : "What I Want to Write",
+ "deletePath" : false
+ }
+}
+```
+* `cts` is Unix time in milliseconds 
+* `path` is the path of the key seperated into segements. For example, the above path corresponds to the key `a.b.c` 
+* `data` is the value you want to store in the key 
+* `deletePath` If set equal to true, will delete the value of a key, rather then adding or updating the key.
+
+A successful request will return the following:
+```
+{
+  "code": 0,
+  "msg": "OK",
+  "cts": 1491485727000,
+  "vts": 2
+}
+```
+* `vts` is a virtual time stamp referring to the relative ordering of events. For example, an event with a vts of 5 would have happened before an event with a vts of 7.
+
+### Read a Key
+A GET to the `/key?authenticationProvider=&token=&path` endpoint will retrieve the value for a key or set of keys inside the database. For example, a request for the path "a.b.c" returned the following information:
+```{
+  "response": [
+    {
+      "path": [
+        "a",
+        "b",
+        "c"
+      ],
+      "data": "hello world",
+      "deletePath": false,
+      "acl": "$publicCreate",
+      "creator": "demoUser",
+      "cts": 1491485727000,
+      "vts": 2
+    }
+  ]
+}
+```
+* `path` is the path of the key seperated into segements. For example, the above path corresponds to the key `a.b.c` 
+* `data` is the value stored in the key
+* `deletePath` deletePath is true if the key has been deleted, false if it still exists
+* `acl` refers to the [Access Controls](https://github.com/csync/csync-server#access-controls)
+* `creator` is the unique user id of whoever created the key
+* `cts` is Unix time in milliseconds 
+* `vts` is a virtual time stamp referring to the relative ordering of events. For example, an event with a vts of 5 would have happened before an event with a vts of 7
+
+For [wildcards](https://github.com/csync/csync-server#wildcards-in-keys), `response` is an array of all keys that match the wildcard's path.
+
+### Error Handling
+Bad requests will return a response in the following format:
+```
+{
+  "error": "InvalidSchemaJSON"
+}
+```
+A list of all response codes is shown [here.](https://github.com/csync/csync-server/blob/master/core/src/main/scala/com/ibm/csync/types/ResponseCodes.scala)
+
 # Getting Started
 
 ### Local Deployment
