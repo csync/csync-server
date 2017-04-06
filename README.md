@@ -93,9 +93,9 @@ A POST to the `/key?authenticationProvider=&token=` endpoint will add, update, o
 }
 ```
 * `cts` is Unix time in milliseconds 
-* `path` is the path of the key seperated into segements. For example, the above path corresponds to the key `a.b.c` 
+* `path` is the path of the key seperated into segments. For example, the above path corresponds to the key `a.b.c` 
 * `data` is the value you want to store in the key 
-* `deletePath` If set equal to true, will delete the value of a key, rather then adding or updating the key.
+* `deletePath` true deletes the key, while false adds or updates the key
 
 A successful request will return the following:
 ```
@@ -128,7 +128,7 @@ A GET to the `/key?authenticationProvider=&token=&path` endpoint will retrieve t
   ]
 }
 ```
-* `path` is the path of the key seperated into segements. For example, the above path corresponds to the key `a.b.c` 
+* `path` is the path of the key seperated into segments. For example, the above path corresponds to the key `a.b.c` 
 * `data` is the value stored in the key
 * `deletePath` deletePath is true if the key has been deleted, false if it still exists
 * `acl` refers to the [Access Controls](https://github.com/csync/csync-server#access-controls)
