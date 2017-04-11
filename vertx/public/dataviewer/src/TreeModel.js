@@ -77,7 +77,9 @@ module.exports = function(shouter, worker) {
             this.deleteNonExsistentParents(parentNode);
         }
         else{
-            this.selectedNode({});
+            if(!jstreeChildren.has("li").length){
+                this.selectedNode(null);
+            }
         }
     }
 

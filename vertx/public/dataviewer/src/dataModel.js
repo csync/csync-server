@@ -165,7 +165,7 @@ function setupJSTree(){
         .on('close_node.jstree', function (event, data){
             if(tree.selectedNode() !== undefined && data.node.children_d.indexOf(tree.selectedNode().id) !== -1){
                 tree.deselectAll();
-                tree.selectedNode({});
+                tree.selectedNode(null);
             }
         })
         .on('select_node.jstree', function(event, data){
