@@ -30,6 +30,7 @@ var header = document.getElementById("header-div");
 var treeDiv = document.getElementById("jstree");
 var leftPanel = document.getElementById("left-panel");
 var middlePanel = document.getElementById("middle");
+var aclOptions = document.getElementById("aclOptions");
 var selectedNode = {};
 
 module.exports = function(tree, shouter, worker) {
@@ -59,6 +60,7 @@ module.exports = function(tree, shouter, worker) {
     self.deleteNode = function () {
         if(tree.selectedNode() === null){
             hideEditDelete();
+            self.refreshProperties();
             return;
         }
         var deleteObj = {
@@ -86,6 +88,7 @@ module.exports = function(tree, shouter, worker) {
         saveButtonElem.css("display", "flex");
         cancelButton.show();
         propertiesElem.hide();
+        aclOptions.disabled = false;
         input.show();
         deleteButtonElem.prop("disabled", true);
         $("#addNode").prop("disabled", true);
@@ -113,7 +116,8 @@ module.exports = function(tree, shouter, worker) {
             type: "update_data",
             text: tree.selectedNode().text,
             parent: tree.selectedNode().parent,
-            data: JSON.stringify(data)
+            data: JSON.stringify(data),
+            acl: {acl: csync.acl + "." + aclOptions.value}
         };
         // send worker a write task
         worker.postMessage(writeObj);
@@ -127,6 +131,7 @@ module.exports = function(tree, shouter, worker) {
         editButton.show();
         treeElem.css({ 'color': '#3d3d3d' });
         propertiesElem.show();
+        aclOptions.disabled = true;
         input.val = currVal;
         input.hide();
         self.editBox(currVal);
@@ -161,8 +166,9 @@ module.exports = function(tree, shouter, worker) {
     self.setInfo = function(node){
         if(Object.keys(node).length !== 0 && node.original.acl !== undefined){
             noInfo.hide();
-            acl.text("ACL: " + node.original.acl);
+            aclOptions.disabled = true;
             acl.show();
+            aclOptions.value = node.original.acl;
         }
     }
 
