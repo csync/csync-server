@@ -91,6 +91,7 @@ module.exports = function(shouter, worker) {
         }
         var node = tree.jstree().get_node(incomingData.key);
         tree.jstree().get_node(incomingData.key).data = incomingData.data; 
+        tree.jstree().get_node(incomingData.key).original.acl = incomingData.acl; 
         tree.jstree().get_node(incomingData.key).original.status = "valid";
         if (tree.jstree().get_selected()[0] === incomingData.key) {
             //publish to update Properties
