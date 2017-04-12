@@ -83,6 +83,9 @@ $(".guest-login").click(function(){
 
 worker.addEventListener('message', function(event){
     var data = event.data;
+    if(!data.data){
+        return; 
+    }
     switch(data.type){
             case "new_node":
                 feedback(data, "Successfully saved node \"" + data.text + "\" to csync");

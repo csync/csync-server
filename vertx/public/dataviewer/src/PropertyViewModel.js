@@ -23,7 +23,7 @@ var saveButtonElem = $("#saveButton");
 var cancelButton = $("#cancelButton");
 var noDataText = $("#noDataText");
 var noInfo = $("#noInfo");
-var acl = $("#acl");
+var aclDiv = $("#acl");
 var jstreeChildren = $(".jstree-children");
 var deleteButtonElem = $("#deleteButton");
 var header = document.getElementById("header-div");
@@ -110,6 +110,10 @@ module.exports = function(tree, shouter, worker) {
         propertiesElem.show();
         $('.dataValueInput').hide();
         input.hide();
+        console.log("ACL value: " + aclOptions.value);
+        var aclModif = (aclOptions.value).replace('$p', 'P');
+        var testACL = (csync.acl)[aclModif];
+        console.log("TEST ACL: " + testACL);
         // write new info to csync
         var writeObj = {
             key: tree.selectedNode().id,
@@ -117,8 +121,9 @@ module.exports = function(tree, shouter, worker) {
             text: tree.selectedNode().text,
             parent: tree.selectedNode().parent,
             data: JSON.stringify(data),
-            acl: {acl: csync.acl + "." + aclOptions.value}
+            acl: {acl: testACL}
         };
+        aclOptions.disabled = true;
         // send worker a write task
         worker.postMessage(writeObj);
     }
@@ -167,7 +172,7 @@ module.exports = function(tree, shouter, worker) {
         if(Object.keys(node).length !== 0 && node.original.acl !== undefined){
             noInfo.hide();
             aclOptions.disabled = true;
-            acl.show();
+            aclDiv.show();
             aclOptions.value = node.original.acl;
         }
     }
@@ -192,7 +197,7 @@ module.exports = function(tree, shouter, worker) {
 
     self.refreshProperties = function(){
         self.properties.removeAll();
-        acl.hide();
+        aclDiv.hide();
         noInfo.show();
         noDataText.show();
         if(!jstreeChildren.has("li").length){
