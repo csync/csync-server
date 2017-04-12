@@ -133,7 +133,6 @@ module.exports = function(shouter, worker) {
     }
 
     this.deleteNonExsistentParents = function(node){
-        console.log("NODE: ", node);
         var tempNode = node;
         while(tempNode.id != "#"){
             var parent = tree.jstree().get_node(tempNode.parent);

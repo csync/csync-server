@@ -44,7 +44,6 @@ module.exports = function(self){
 
 function writeUpdateNode(obj, data, self){
     var keyToListen = csyncInstance.key(obj.key);
-    console.log(obj.acl);
     keyToListen.write(data, obj.acl)
         .then(function(val){
             console.log(val);

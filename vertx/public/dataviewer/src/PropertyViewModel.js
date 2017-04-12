@@ -111,10 +111,8 @@ module.exports = function(tree, shouter, worker) {
         propertiesElem.show();
         $('.dataValueInput').hide();
         input.hide();
-        console.log("ACL value: " + aclOptions.value);
         var aclModif = (aclOptions.value).replace('$p', 'P');
         var testACL = (csync.acl)[aclModif];
-        console.log("TEST ACL: " + testACL);
         // write new info to csync
         var writeObj = {
             key: tree.selectedNode().id,
