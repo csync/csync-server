@@ -41,6 +41,7 @@ module.exports = function(tree, shouter, worker) {
     //table ovservable
     self.properties = ko.observableArray();
     self.editBox = ko.observable({});
+    self.latestACL = "";
 
     //subscribe to tree's selected node 
     tree.selectedNode.subscribe(function (node) {
@@ -174,6 +175,7 @@ module.exports = function(tree, shouter, worker) {
             aclOptions.disabled = true;
             aclDiv.show();
             aclOptions.value = node.original.acl;
+            self.latestACL = aclOptions.value;
         }
     }
 

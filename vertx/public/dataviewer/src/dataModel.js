@@ -83,9 +83,6 @@ $(".guest-login").click(function(){
 
 worker.addEventListener('message', function(event){
     var data = event.data;
-    if(!data.data){
-        return; 
-    }
     switch(data.type){
             case "new_node":
                 feedback(data, "Successfully saved node \"" + data.text + "\" to csync");
@@ -136,7 +133,11 @@ function processData(incomingData){
         }
     }
     else {
-        tree.deleteNode(incomingData);
+        // temporary fix for ACL change deleting key problem
+        if(propertyView.latestACL === incomingData.acl)
+        {
+            tree.deleteNode(incomingData);
+        }
     }
 }
 
