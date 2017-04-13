@@ -111,8 +111,8 @@ module.exports = function(tree, shouter, worker) {
         propertiesElem.show();
         $('.dataValueInput').hide();
         input.hide();
-        var aclModif = (aclOptions.value).replace('$p', 'P');
-        var testACL = (csync.acl)[aclModif];
+        var currAcl = aclOptions.value;
+        var aclModif = currAcl[1].toUpperCase() + currAcl.slice(2);
         // write new info to csync
         var writeObj = {
             key: tree.selectedNode().id,
@@ -120,7 +120,7 @@ module.exports = function(tree, shouter, worker) {
             text: tree.selectedNode().text,
             parent: tree.selectedNode().parent,
             data: JSON.stringify(data),
-            acl: {acl: testACL}
+            acl: {acl: (csync.acl)[aclModif]}
         };
         aclOptions.disabled = true;
         // send worker a write task
