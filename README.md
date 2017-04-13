@@ -168,15 +168,15 @@ A list of all response codes is shown [here.](https://github.com/csync/csync-ser
 
   To enable **Google Authentication** add in an environment variable like so:
   
-  - `docker run -d -p 6005:6005 -e CSYNC_GOOGLE_CLIENT_IDS googleClientIDHere csync`
+  - `docker run -d -p 6005:6005 -e CSYNC_GOOGLE_CLIENT_IDS = "googleClientIDHere" csync`
   
   To enable **GitHub Authentication** add in a client ID and client Secret 
   
-  - `docker run -d -p 6005:6005 -e CSYNC_GITHUB_ID githubIdHere -e CSYNC_GITHUB_SECRET githubSecretHere csync`
+  - `docker run -d -p 6005:6005 -e CSYNC_GITHUB_ID = "githubIdHere" -e CSYNC_GITHUB_SECRET = "githubSecretHere" csync`
   
   To enable **Facebook Authentication** add in an app ID and app secret 
   
-  - `docker run -d -p 6005:6005 -e CSYNC_FACEBOOK_ID facebookIdHere -e CSYNC_FACEBOOK_SECRET facebookSecretHere csync`
+  - `docker run -d -p 6005:6005 -e CSYNC_FACEBOOK_ID = "facebookIdHere" -e CSYNC_FACEBOOK_SECRET = "facebookSecretHere" csync`
   
   All of the authentication providers can be enabled at the same time by having each environment variables specified.
   
