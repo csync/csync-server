@@ -458,7 +458,7 @@ label {
 	top:1px;
 }
 
-.styled-select {
+.select {
    background: #5294e9 no-repeat 96% 0;
    height: 29px;
    overflow: hidden;
@@ -466,4 +466,8 @@ label {
    color: white;
    font-size: 16px;
    font-weight: bold;
+}
+
+.select-disabled {
+    background: #b5cbe8 no-repeat 96% 0;
 }
