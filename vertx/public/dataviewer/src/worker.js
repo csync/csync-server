@@ -80,7 +80,7 @@ function listenToCsync(self){
                 if(nodeCache.length === 0){
                     return;
                 }
-                self.postMessage(nodeCache.pop());
+                self.postMessage(nodeCache.shift());
             }
         }, 500);
     });
