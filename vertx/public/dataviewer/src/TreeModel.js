@@ -21,6 +21,7 @@ var tree = $('#jstree');
 
 module.exports = function(shouter, worker) {
     this.selectedNode = ko.observable({});
+    this.prevSelected = ko.observable({});
 
     //subscribe to addNode
     shouter.subscribe(function (data) {
@@ -64,12 +65,11 @@ module.exports = function(shouter, worker) {
         worker.postMessage(writeObj);
     }, this, "afterRename");
     
-    this.deleteNode = function(incomingData){
+    this.deleteNode = function(currNode){
         //set selected node to parent
-        var currNode = tree.jstree().get_node(incomingData.key);
-        tree.jstree().delete_node(currNode);  
+        tree.jstree().delete_node(currNode);
         var jstreeChildren = $(".jstree-children");
-        if(this.selectedNode() !== null && jstreeChildren.has("li").length && incomingData.key === this.selectedNode().id){
+        if(this.selectedNode() !== null && jstreeChildren.has("li").length && currNode.id === this.selectedNode().id){
             var parentID = this.selectedNode().parent;
             var parentNode = tree.jstree().get_node(parentID);
             tree.jstree().deselect_all(true);
@@ -78,6 +78,7 @@ module.exports = function(shouter, worker) {
         }
         else{
             if(!jstreeChildren.has("li").length){
+                this.prevSelected(this.selectedNode());
                 this.selectedNode(null);
             }
         }
@@ -127,6 +128,10 @@ module.exports = function(shouter, worker) {
                     position = getPosition(parentNode.children || [], node.id);
                     tree.jstree().create_node(parentNode, node, position);
                 }
+                if(this.prevSelected() != null && this.prevSelected().id === node.id){
+                    this.deselectAll();
+                    tree.jstree().select_node(node);
+                }
                 this.restoreState(node);                    
             }
         }
@@ -140,6 +145,7 @@ module.exports = function(shouter, worker) {
                 tree.jstree().delete_node(tempNode);
                 tempNode = parent;
                 if(tempNode.parent === null){
+                    this.prevSelected(this.selectedNode());
                     this.selectedNode(null);
                 }
                 else{
@@ -194,6 +200,7 @@ module.exports = function(shouter, worker) {
         }
 
         if(stateCore.selected.length === 0){
+            this.prevSelected(this.selectedNode());
             this.selectedNode(null);
         }
     }

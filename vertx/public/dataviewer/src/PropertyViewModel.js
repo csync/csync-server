@@ -204,7 +204,7 @@ module.exports = function(tree, shouter, worker) {
         aclDiv.hide();
         noInfo.show();
         noDataText.show();
-        if(!jstreeChildren.has("li").length){
+        if(!jstreeChildren.has("li").length && tree.selectedNode() === null){
             hideEditDelete();
         }
     }

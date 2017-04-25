@@ -123,20 +123,19 @@ function showHideSnackbar(message, isError){
 }
 
 function processData(incomingData){
+    var node = jsTreeElem.jstree().get_node(incomingData.key);
     if (incomingData.exists) {
-        var node = jsTreeElem.jstree().get_node(incomingData.key);
         if (!node){
             tree.createAndAddNode(incomingData);
         }
         else{
             tree.updateNodeData(incomingData);
         }
-    }
+    }                   
     else {
-        // temporary fix for ACL change deleting key problem
-        if(propertyView.latestACL === incomingData.acl)
+        if(node && !node.children.length && propertyView.latestACL === incomingData.acl)
         {
-            tree.deleteNode(incomingData);
+            tree.deleteNode(node);
         }
     }
 }
@@ -167,12 +166,13 @@ function setupJSTree(){
             shouter.notifySubscribers(data.node, "afterRename");
         })
         .on('close_node.jstree', function (event, data){
-            if(tree.selectedNode() !== undefined && data.node.children_d.indexOf(tree.selectedNode().id) !== -1){
+            if(tree.selectedNode() !== null && data.node.children_d.indexOf(tree.selectedNode().id) !== -1){
                 tree.deselectAll();
                 tree.selectedNode(null);
             }
         })
         .on('select_node.jstree', function(event, data){
+            tree.prevSelected(tree.selectedNode());
             if (data.instance.is_leaf(data.node)) {
                 deleteButtonElem.prop("disabled", false);
             }
