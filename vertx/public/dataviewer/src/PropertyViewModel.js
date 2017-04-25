@@ -127,6 +127,8 @@ module.exports = function(tree, shouter, worker) {
         aclOptions.classList.add('select-disabled');
         // send worker a write task
         worker.postMessage(writeObj);
+        writeObj.acl = currAcl;
+        tree.updatedNode(writeObj);
     }
     
     self.cancelButton = function () {

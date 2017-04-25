@@ -21,7 +21,7 @@ var tree = $('#jstree');
 
 module.exports = function(shouter, worker) {
     this.selectedNode = ko.observable({});
-    this.prevSelected = ko.observable({});
+    this.updatedNode = ko.observable({});
 
     //subscribe to addNode
     shouter.subscribe(function (data) {
@@ -78,7 +78,6 @@ module.exports = function(shouter, worker) {
         }
         else{
             if(!jstreeChildren.has("li").length){
-                this.prevSelected(this.selectedNode());
                 this.selectedNode(null);
             }
         }
@@ -128,10 +127,6 @@ module.exports = function(shouter, worker) {
                     position = getPosition(parentNode.children || [], node.id);
                     tree.jstree().create_node(parentNode, node, position);
                 }
-                if(this.prevSelected() != null && this.prevSelected().id === node.id){
-                    this.deselectAll();
-                    tree.jstree().select_node(node);
-                }
                 this.restoreState(node);                    
             }
         }
@@ -145,7 +140,6 @@ module.exports = function(shouter, worker) {
                 tree.jstree().delete_node(tempNode);
                 tempNode = parent;
                 if(tempNode.parent === null){
-                    this.prevSelected(this.selectedNode());
                     this.selectedNode(null);
                 }
                 else{
@@ -200,7 +194,6 @@ module.exports = function(shouter, worker) {
         }
 
         if(stateCore.selected.length === 0){
-            this.prevSelected(this.selectedNode());
             this.selectedNode(null);
         }
     }

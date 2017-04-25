@@ -131,9 +131,11 @@ function processData(incomingData){
         else{
             tree.updateNodeData(incomingData);
         }
-    }                   
-    else {
-        if(node && !node.children.length && propertyView.latestACL === incomingData.acl)
+    } else {
+        if(node && tree.updatedNode() && node.original.acl !== tree.updatedNode().acl && node.id === tree.updatedNode().key){
+            return;
+        }
+        else if(node.children.length === 0)
         {
             tree.deleteNode(node);
         }
@@ -172,7 +174,6 @@ function setupJSTree(){
             }
         })
         .on('select_node.jstree', function(event, data){
-            tree.prevSelected(tree.selectedNode());
             if (data.instance.is_leaf(data.node)) {
                 deleteButtonElem.prop("disabled", false);
             }
