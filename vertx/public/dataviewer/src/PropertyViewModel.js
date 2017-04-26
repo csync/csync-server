@@ -23,13 +23,14 @@ var saveButtonElem = $("#saveButton");
 var cancelButton = $("#cancelButton");
 var noDataText = $("#noDataText");
 var noInfo = $("#noInfo");
-var acl = $("#acl");
+var aclDiv = $("#acl");
 var jstreeChildren = $(".jstree-children");
 var deleteButtonElem = $("#deleteButton");
 var header = document.getElementById("header-div");
 var treeDiv = document.getElementById("jstree");
 var leftPanel = document.getElementById("left-panel");
 var middlePanel = document.getElementById("middle");
+var aclOptions = document.getElementById("aclOptions");
 var selectedNode = {};
 
 module.exports = function(tree, shouter, worker) {
@@ -40,6 +41,7 @@ module.exports = function(tree, shouter, worker) {
     //table ovservable
     self.properties = ko.observableArray();
     self.editBox = ko.observable({});
+    self.latestACL = "";
 
     //subscribe to tree's selected node 
     tree.selectedNode.subscribe(function (node) {
@@ -59,6 +61,7 @@ module.exports = function(tree, shouter, worker) {
     self.deleteNode = function () {
         if(tree.selectedNode() === null){
             hideEditDelete();
+            self.refreshProperties();
             return;
         }
         var deleteObj = {
@@ -86,6 +89,8 @@ module.exports = function(tree, shouter, worker) {
         saveButtonElem.css("display", "flex");
         cancelButton.show();
         propertiesElem.hide();
+        aclOptions.disabled = false;
+        aclOptions.classList.remove('select-disabled');
         input.show();
         deleteButtonElem.prop("disabled", true);
         $("#addNode").prop("disabled", true);
@@ -107,16 +112,26 @@ module.exports = function(tree, shouter, worker) {
         propertiesElem.show();
         $('.dataValueInput').hide();
         input.hide();
+        var currAcl = aclOptions.value;
+        // aclModif converts the value of the acl to the SDK equivalent
+        // We may want to find a better way to do this in the future.
+        // Ex: $publicCreate -> PublicCreate
+        var aclModif = currAcl[1].toUpperCase() + currAcl.slice(2);
         // write new info to csync
         var writeObj = {
             key: tree.selectedNode().id,
             type: "update_data",
             text: tree.selectedNode().text,
             parent: tree.selectedNode().parent,
-            data: JSON.stringify(data)
+            data: JSON.stringify(data),
+            acl: {acl: (csync.acl)[aclModif]}
         };
+        aclOptions.disabled = true;
+        aclOptions.classList.add('select-disabled');
         // send worker a write task
         worker.postMessage(writeObj);
+        writeObj.acl = currAcl;
+        tree.updatedNode(writeObj);
     }
     
     self.cancelButton = function () {
@@ -127,6 +142,8 @@ module.exports = function(tree, shouter, worker) {
         editButton.show();
         treeElem.css({ 'color': '#3d3d3d' });
         propertiesElem.show();
+        aclOptions.disabled = true;
+        aclOptions.classList.add('select-disabled');
         input.val = currVal;
         input.hide();
         self.editBox(currVal);
@@ -161,8 +178,11 @@ module.exports = function(tree, shouter, worker) {
     self.setInfo = function(node){
         if(Object.keys(node).length !== 0 && node.original.acl !== undefined){
             noInfo.hide();
-            acl.text("ACL: " + node.original.acl);
-            acl.show();
+            aclOptions.disabled = true;
+            aclDiv.show();
+            aclOptions.classList.add('select-disabled');
+            aclOptions.value = node.original.acl;
+            self.latestACL = aclOptions.value;
         }
     }
 
@@ -186,10 +206,10 @@ module.exports = function(tree, shouter, worker) {
 
     self.refreshProperties = function(){
         self.properties.removeAll();
-        acl.hide();
+        aclDiv.hide();
         noInfo.show();
         noDataText.show();
-        if(!jstreeChildren.has("li").length){
+        if(!jstreeChildren.has("li").length && tree.selectedNode() === null){
             hideEditDelete();
         }
     }

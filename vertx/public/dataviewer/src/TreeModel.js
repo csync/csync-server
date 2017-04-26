@@ -21,6 +21,7 @@ var tree = $('#jstree');
 
 module.exports = function(shouter, worker) {
     this.selectedNode = ko.observable({});
+    this.updatedNode = ko.observable({});
 
     //subscribe to addNode
     shouter.subscribe(function (data) {
@@ -64,12 +65,11 @@ module.exports = function(shouter, worker) {
         worker.postMessage(writeObj);
     }, this, "afterRename");
     
-    this.deleteNode = function(incomingData){
+    this.deleteNode = function(currNode){
         //set selected node to parent
-        var currNode = tree.jstree().get_node(incomingData.key);
-        tree.jstree().delete_node(currNode);  
+        tree.jstree().delete_node(currNode);
         var jstreeChildren = $(".jstree-children");
-        if(this.selectedNode() !== null && jstreeChildren.has("li").length && incomingData.key === this.selectedNode().id){
+        if(this.selectedNode() !== null && jstreeChildren.has("li").length && currNode.id === this.selectedNode().id){
             var parentID = this.selectedNode().parent;
             var parentNode = tree.jstree().get_node(parentID);
             tree.jstree().deselect_all(true);
@@ -77,7 +77,9 @@ module.exports = function(shouter, worker) {
             this.deleteNonExsistentParents(parentNode);
         }
         else{
-            this.selectedNode({});
+            if(!jstreeChildren.has("li").length){
+                this.selectedNode(null);
+            }
         }
     }
 
@@ -89,6 +91,7 @@ module.exports = function(shouter, worker) {
         }
         var node = tree.jstree().get_node(incomingData.key);
         tree.jstree().get_node(incomingData.key).data = incomingData.data; 
+        tree.jstree().get_node(incomingData.key).original.acl = incomingData.acl; 
         tree.jstree().get_node(incomingData.key).original.status = "valid";
         if (tree.jstree().get_selected()[0] === incomingData.key) {
             //publish to update Properties
@@ -130,7 +133,6 @@ module.exports = function(shouter, worker) {
     }
 
     this.deleteNonExsistentParents = function(node){
-        console.log("NODE: ", node);
         var tempNode = node;
         while(tempNode.id != "#"){
             var parent = tree.jstree().get_node(tempNode.parent);

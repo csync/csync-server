@@ -44,7 +44,7 @@ module.exports = function(self){
 
 function writeUpdateNode(obj, data, self){
     var keyToListen = csyncInstance.key(obj.key);
-    keyToListen.write(data)
+    keyToListen.write(data, obj.acl)
         .then(function(val){
             console.log(val);
             self.postMessage(obj);
@@ -80,7 +80,7 @@ function listenToCsync(self){
                 if(nodeCache.length === 0){
                     return;
                 }
-                self.postMessage(nodeCache.pop());
+                self.postMessage(nodeCache.shift());
             }
         }, 500);
     });

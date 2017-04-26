@@ -123,17 +123,22 @@ function showHideSnackbar(message, isError){
 }
 
 function processData(incomingData){
+    var node = jsTreeElem.jstree().get_node(incomingData.key);
     if (incomingData.exists) {
-        var node = jsTreeElem.jstree().get_node(incomingData.key);
         if (!node){
             tree.createAndAddNode(incomingData);
         }
         else{
             tree.updateNodeData(incomingData);
         }
-    }
-    else {
-        tree.deleteNode(incomingData);
+    } else {
+        if(node && tree.updatedNode() && node.original.acl !== tree.updatedNode().acl && node.id === tree.updatedNode().key){
+            return;
+        }
+        else if(node.children.length === 0)
+        {
+            tree.deleteNode(node);
+        }
     }
 }
 
@@ -163,9 +168,9 @@ function setupJSTree(){
             shouter.notifySubscribers(data.node, "afterRename");
         })
         .on('close_node.jstree', function (event, data){
-            if(tree.selectedNode() !== undefined && data.node.children_d.indexOf(tree.selectedNode().id) !== -1){
+            if(tree.selectedNode() !== null && data.node.children_d.indexOf(tree.selectedNode().id) !== -1){
                 tree.deselectAll();
-                tree.selectedNode({});
+                tree.selectedNode(null);
             }
         })
         .on('select_node.jstree', function(event, data){

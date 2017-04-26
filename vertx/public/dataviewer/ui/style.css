@@ -75,6 +75,12 @@ p {
     padding-left: 20px;
 }
 
+.flex-content {
+    order: 0;
+    flex: 0 1 auto;
+    align-self: auto;
+}
+
 .content {
     border-top: 1px solid gray;
     order: 0 flex: 0 1 auto;
@@ -450,4 +456,18 @@ label {
 .guest-login:active {
 	position:relative;
 	top:1px;
+}
+
+.select {
+   background: #5294e9 no-repeat 96% 0;
+   height: 29px;
+   overflow: hidden;
+   width: 240px;
+   color: white;
+   font-size: 16px;
+   font-weight: bold;
+}
+
+.select-disabled {
+    background: #b5cbe8 no-repeat 96% 0;
 }

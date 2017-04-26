@@ -35,7 +35,19 @@
 					<div class="acl-info"> 
 						<h3>INFO</h3>
 					    <div id="noInfo">No Info.</div>
-						<div id="acl" hidden=true>ACL</div>
+						<div id="acl" class="acl" hidden='true' > 
+							<div id="aclTitle" class="flex-content"> ACL: </div>
+							<select id="aclOptions" class="flex-content select select-disabled" >
+								<option value="$private">$private</option>
+								<option value="$publicRead">$publicRead</option>
+								<option value="$publicWrite">$publicWrite</option>
+								<option value="$publicCreate">$publicCreate</option>
+								<option value="$publicReadWrite">$publicReadWrite</option>
+								<option value="$publicReadCreate">$publicReadCreate</option>
+								<option value="$publicWriteCreate">$publicWriteCreate</option>
+								<option value="$publicReadWriteCreate">$publicReadWriteCreate</option>
+							</select>
+						</div>
 						<h3>DATA</h3>		
 					    <div id="noDataText">No Data.</div>
 					</div>
