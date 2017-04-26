@@ -113,6 +113,9 @@ module.exports = function(tree, shouter, worker) {
         $('.dataValueInput').hide();
         input.hide();
         var currAcl = aclOptions.value;
+        // aclModif converts the value of the acl to the SDK equivalent
+        // We may want to find a better way to do this in the future.
+        // Ex: $publicCreate -> PublicCreate
         var aclModif = currAcl[1].toUpperCase() + currAcl.slice(2);
         // write new info to csync
         var writeObj = {
