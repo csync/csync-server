@@ -471,3 +471,21 @@ label {
 .select-disabled {
     background: #b5cbe8 no-repeat 96% 0;
 }
+
+.title {
+    padding-top: 5px;
+}
+
+.nodeKey {
+    height: 28px;
+    width: 230px;
+    background: #b5cbe8 no-repeat 96% 0;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    display: inline-block;
+    border: 1px solid #ccc;
+    padding-left: 8px;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.16);
+}

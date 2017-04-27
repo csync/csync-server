@@ -31,6 +31,7 @@ var treeDiv = document.getElementById("jstree");
 var leftPanel = document.getElementById("left-panel");
 var middlePanel = document.getElementById("middle");
 var aclOptions = document.getElementById("aclOptions");
+var nodeKey = document.getElementById("nodeKey");
 var selectedNode = {};
 
 module.exports = function(tree, shouter, worker) {
@@ -182,6 +183,7 @@ module.exports = function(tree, shouter, worker) {
             aclDiv.show();
             aclOptions.classList.add('select-disabled');
             aclOptions.value = node.original.acl;
+            nodeKey.value = node.id;
             self.latestACL = aclOptions.value;
         }
     }
