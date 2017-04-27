@@ -34,6 +34,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import io.vertx.core._
 import io.vertx.core.http._
+import io.vertx.core.http.RequestOptions
 import io.vertx.core.net.PemKeyCertOptions
 import org.json4s._
 import org.json4s.native.Serialization
@@ -262,14 +263,17 @@ object Main extends LazyLogging {
     val uuid = sys.env.getOrElse("uuid", "")
     val space_id = sys.env.getOrElse("space_id", "")
     val image_id = sys.env.getOrElse("Image_id", "")
-    val memory_limit = (Process("cat /sys/fs/cgroup/memory/memory.limit_in_bytes").!!.toString.trim().toLong / 1024 ^ 3).toString
-    logger.info(memory_limit)
 
     if (!space_id.isEmpty) {
+      logger.info("Logging deployment information")
+      val memory_limit = (Process("cat /sys/fs/cgroup/memory/memory.limit_in_bytes").!!.toString.trim().toLong / 1024 ^ 3).toString
       val httpClient = vertx.createHttpClient()
-      httpClient.getNow(443, "google-analytics.com",
-        "/collect?v=1&tid=UA-91208269-3&cid=555&t=event&ec=createdBluemixInstance&ea=forCSync&cd1=" + uuid + "&cd2=" + space_id + "&cd3=" + groupId + "&cd4=" + image_id + "&cd5=" + memory_limit,
-        (event: HttpClientResponse) => logger.debug("response from GA: " + event.statusCode()))
+      var requestOptions = new RequestOptions()
+      requestOptions.setPort(443)
+      requestOptions.setHost("google-analytics.com")
+      requestOptions.setURI("/collect?v=1&tid=UA-91208269-3&cid=555&t=event&ec=createdBluemixInstance&ea=forCSync&cd1=" + uuid + "&cd2=" + space_id + "&cd3=" + groupId + "&cd4=" + image_id + "&cd5=" + memory_limit)
+      requestOptions.setSsl(true)
+      httpClient.getNow(requestOptions, (event: HttpClientResponse) => logger.debug("response from GA: " + event.statusCode()))
 
       val f: File = new File("public/package.json")
       if (f.exists()) {
