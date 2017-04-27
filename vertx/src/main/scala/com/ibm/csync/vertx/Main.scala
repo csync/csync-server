@@ -34,12 +34,14 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import io.vertx.core._
 import io.vertx.core.http._
+import io.vertx.core.http.RequestOptions
 import io.vertx.core.net.PemKeyCertOptions
 import org.json4s._
 import org.json4s.native.Serialization
 import org.postgresql.ds.PGSimpleDataSource
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.sys.process.Process
 
 object Main extends LazyLogging {
 
@@ -257,12 +259,30 @@ object Main extends LazyLogging {
       new HttpServerOptions().setPort(port.toInt)
     }
 
-    val f: File = new File("public/package.json")
-    if (f.exists()) {
-      val is = new FileInputStream("public/package.json")
-      val json: JSONArtifact = JSON.parse(is, true)
-      logger.info(json.toString)
-      val client = new CFJavaTrackerClient().track(json.asInstanceOf[JSONObject])
+    val groupId = sys.env.getOrElse("group_id", "")
+    val uuid = sys.env.getOrElse("uuid", "")
+    val space_id = sys.env.getOrElse("space_id", "")
+    val image_id = sys.env.getOrElse("Image_id", "")
+
+    if (!space_id.isEmpty) {
+      logger.info("Logging deployment information")
+      val memory_limit = (Process("cat /sys/fs/cgroup/memory/memory.limit_in_bytes").!!.toString.trim().toLong / 1024 ^ 3).toString
+      val httpClient = vertx.createHttpClient()
+      var requestOptions = new RequestOptions()
+      requestOptions.setPort(443)
+      requestOptions.setHost("google-analytics.com")
+      requestOptions.setURI("/collect?v=1&tid=UA-91208269-3&cid=555&t=event&ec=createdBluemixInstance&ea=forCSync&cd1=" + uuid + "&cd2=" + space_id + "&cd3=" + groupId + "&cd4=" + image_id + "&cd5=" + memory_limit)
+      requestOptions.setSsl(true)
+      httpClient.getNow(requestOptions, (event: HttpClientResponse) => logger.debug("response from GA: " + event.statusCode()))
+
+      val f: File = new File("public/package.json")
+      if (f.exists()) {
+        val is = new FileInputStream("public/package.json")
+        val json: JSONArtifact = JSON.parse(is, true)
+        logger.info(json.toString)
+        val client = new CFJavaTrackerClient().track(json.asInstanceOf[JSONObject])
+      }
+
     }
 
     def loop(n: Int): Future[_] =
