@@ -16,7 +16,8 @@
 
 import com.ibm.csync.vertx.{Main, VertxContext}
 import io.vertx.core.{AbstractVerticle, Context, Vertx}
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.{Matchers, PropSpec}
 
 import scala.concurrent.Promise
@@ -101,7 +102,7 @@ class T1 extends PropSpec with Matchers with ScalaFutures {
 
     //Thread.sleep(10000000)
 
-    promise.future.futureValue should be(2)
+    promise.future.futureValue(PatienceConfiguration.Timeout(Span(5000, Milliseconds))) should be(2)
 
   }
 }
