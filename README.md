@@ -82,14 +82,16 @@ The ACL for a key is set when the key is created by the first write performed to
 
 ### Create, Update or Delete a Key
 A POST to the `/key?authenticationProvider=&token=` endpoint will add, update, or delete the value of a key inside the database. It expects a JSON body in the following format: 
-```{"kind":"pub",
-"version" : 15,
-"payload" : {
- "cts": 1491485727000,
- "path" : ["a", "b", "c"],
- "data" : "What I Want to Write",
- "deletePath" : false
- }
+```
+{ 
+  "kind":"pub",
+  "version" : 15,
+  "payload" : {
+    "cts": 1491485727000,
+    "path" : ["a", "b", "c"],
+    "data" : "What I Want to Write",
+    "deletePath" : false
+  }
 }
 ```
 * `cts` is Unix time in milliseconds 
