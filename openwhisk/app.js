@@ -9,10 +9,9 @@ var app = express();
 app.use(bodyParser.json()); // for parsing application/json
 
 // CSync
-var csyncApp = csync({ host: "localhost", port: 6005, useSSL: false });
+var csyncApp = csync({ host: "169.46.157.39", port: 6005, useSSL: false });
 var keys = {};
 csyncApp.authenticate("demo", "demoToken");
-
 
 // render index page
 app.put('/webhooks', function (req, res) {
@@ -24,8 +23,9 @@ app.put('/webhooks', function (req, res) {
     if (error) {
       // handle error
       console.log("Error: ", error);
+      res.sendStatus(404);
     } else {
-      // value has key, data, acl, exists
+      value["state"] = req.body.state;
       request({
         method: "POST",
         uri: url,
