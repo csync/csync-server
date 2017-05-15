@@ -22,15 +22,19 @@ import com.ibm.csync.database._
 import com.ibm.csync.session.Session
 import com.ibm.csync.types.Pattern
 
-case class Advance(rvts: Long, pattern: Seq[String]) extends Command {
+case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, pattern: Seq[String]) extends Command {
 
   override def doit(us: Session): AdvanceResponse = {
+
     us.transaction { sqlConnection =>
+      //Limit is double actual limit.
       val limit = 10
       val (patternWhere, patternVals) = Pattern(pattern).asWhere
       val acls = getAcls(sqlConnection, us.userInfo)
       val aclWhere = List.fill(acls.length)("?").mkString(",")
-      val queryVals1 = Seq(rvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, limit)
+      val queryVals1 = Seq(rvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, limit) ++ Seq(lvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, limit)
+      println("queryvals1: " + queryVals1.toString())
+      var minVts: Long = 0
 
       var maxVts = SqlStatement.queryResult(
         sqlConnection,
@@ -40,32 +44,61 @@ case class Advance(rvts: Long, pattern: Seq[String]) extends Command {
 
       val rs1: Seq[Long] = getFromLatest(sqlConnection, patternWhere, aclWhere, queryVals1)
       if (rs1.length == limit) {
-        maxVts = rs1.last
+        maxVts = rs1.head
+      }
+      if (rs1.nonEmpty) {
+        minVts = rs1.last
       }
 
-      val queryVals2 = Seq(rvts, maxVts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, limit)
+
+      val queryVals2 = Seq(rvts, maxVts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, limit) ++ Seq(lvts, minVts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, limit)
+      println("queryvals2: " + queryVals2.toString())
       val rs2: Seq[Long] = getFromAttic(sqlConnection, patternWhere, aclWhere, queryVals2)
       if (rs2.length == limit) {
-        maxVts = rs2.last
-        AdvanceResponse(rs1.filter(_ < maxVts) ++ rs2, maxVts)
+        println("rs2 >= limit rs1: " + rs1.toString() + " rs2: " + rs2.toString())
+        maxVts = rs2.head
+        minVts = rs2.last
+        val filteredRs = rs1.filter(_ < maxVts).filter(_ > minVts)
+        AdvanceResponse(filteredRs ++ rs2, minVts, maxVts)
+
       } else {
-        AdvanceResponse(rs1 ++ rs2, maxVts)
+
+        println("rs2 < limit rs1: " + rs1.toString() + " rs2: " + rs2.toString())
+        if (minVts > lvts) {
+          minVts = lvts
+        }
+        if (rvts != Long.MaxValue && maxVts < rvts) {
+          maxVts = rvts
+        }
+        AdvanceResponse(rs1 ++ rs2, minVts, maxVts)
       }
     }
   }
 
   def addTerm(op: String, term: String): String = {
-    if (term.length > 0) { s"$op $term" } else { "" }
+    if (term.length > 0) {
+      s"$op $term"
+    } else {
+      ""
+    }
   }
 
   private def getFromAttic(sqlConnection: Connection, patternWhere: String, aclWhere: String, queryVals2: Seq[Any]) =
     SqlStatement.queryResult(
       sqlConnection,
       s"""
-          SELECT vts FROM attic WHERE vts > ? AND vts < ?
+          (SELECT vts FROM attic WHERE (vts > ? AND vts < ?)
               ${addTerm("AND", patternWhere)}
 					    AND (aclid IN ($aclWhere) OR creatorid = ?)
-					    ORDER BY vts LIMIT ?
+					    ORDER BY vts ASC LIMIT ?)
+
+         UNION ALL
+
+         (SELECT vts FROM attic WHERE (vts < ? AND vts > ?)
+                       ${addTerm("AND", patternWhere)}
+         					    AND (aclid IN ($aclWhere) OR creatorid = ?)
+                      ORDER BY vts DESC LIMIT ?)
+          ORDER BY vts DESC
           """,
       queryVals2
     ) { rs => rs.getLong("vts") }
@@ -74,12 +107,20 @@ case class Advance(rvts: Long, pattern: Seq[String]) extends Command {
     SqlStatement.queryResult(
       sqlConnection,
       s"""
-          SELECT vts FROM latest WHERE vts > ?
+          (SELECT vts FROM latest WHERE vts > ?
               ${addTerm("AND", patternWhere)}
 					    AND (aclid IN ($aclWhere) OR creatorid = ?)
-					    ORDER BY vts LIMIT ?
+					    ORDER BY vts ASC LIMIT ?)
+          UNION ALL
+         ( SELECT vts FROM latest WHERE vts < ?
+                       ${addTerm("AND", patternWhere)}
+         					    AND (aclid IN ($aclWhere) OR creatorid = ?)
+
+         					    ORDER BY vts DESC LIMIT ?)
+                  ORDER BY vts DESC
           """,
       queryVals1
+
     ) { rs => rs.getLong("vts") }
 
 }

@@ -32,7 +32,7 @@ class AdvanceTests extends FunSuite with Matchers {
     val ds = new PGPoolingDataSource()
     ds.setCurrentSchema("pg_temp")
     ds.setServerName("localhost")
-    ds.setMaxConnections(1)
+    ds.setMaxConnections(100)
     Database.createTables(ds)
 
     val rabbit = Factory("amqp://guest:guest@localhost:5672/testing").newConnection
@@ -49,8 +49,9 @@ class AdvanceTests extends FunSuite with Matchers {
       Pub(101, Seq("a"), Some("yy"), false, None, None).doit(session)
       Pub(102, Seq("a"), Some("yyy"), false, None, None).doit(session)
       val lastVTS = Pub(103, Seq("a"), Some("yyyy"), false, None, None).doit(session).vts
-      val advanceResponse = Advance(1, Seq("a")).doit(session)
-      advanceResponse.maxvts should be(lastVTS)
+      val advanceResponse = Advance(pattern = Seq("a")).doit(session)
+      println("advanceResponse: " + advanceResponse.toString)
+      advanceResponse.rvts should be(lastVTS)
       advanceResponse.vts.head should be(lastVTS)
       advanceResponse.vts.size should be(1)
     } finally {
@@ -66,9 +67,12 @@ class AdvanceTests extends FunSuite with Matchers {
       Pub(101, Seq("a"), Some("yy"), false, None, None).doit(session)
       val lastAVTS = Pub(102, Seq("a"), Some("yyy"), false, None, None).doit(session).vts
       val maxVTS = Pub(103, Seq("b"), Some("yyyy"), false, None, None).doit(session).vts
-      val advanceResponse = Advance(1, Seq("a")).doit(session)
-      advanceResponse.maxvts should be(maxVTS)
-      advanceResponse.vts.head should be(lastAVTS)
+      val advanceResponse = Advance(1,1, Seq("a")).doit(session)
+      println("advanceResponse: " + advanceResponse.toString())
+      println(Fetch(List(5,6)).doit(session).toString)
+
+      advanceResponse.rvts should be(maxVTS)
+      advanceResponse.vts.last should be(lastAVTS)
       advanceResponse.vts.size should be(1)
     } finally {
       session.close()
@@ -89,11 +93,97 @@ class AdvanceTests extends FunSuite with Matchers {
       Pub(107, Seq("j"), Some("yyyyyyyy"), false, None, None).doit(session)
       val tenthPubVTS = Pub(108, Seq("k"), Some("yyyyyyyyy"), false, None, None).doit(session).vts
       Pub(109, Seq("l"), Some("yyyyyyyyyy"), false, None, None).doit(session)
-      val advanceResponse = Advance(1, Seq("*")).doit(session)
+      val advanceResponse = Advance(1,1, Seq("*")).doit(session)
       //vts starts at 1, so 10 entries should get us to 11
-      advanceResponse.maxvts should be(tenthPubVTS)
+      println("advanceResponse: " + advanceResponse.toString())
+      println(Fetch(Seq(3)).doit(session).response.toString())
+      advanceResponse.rvts should be(tenthPubVTS)
       //Max advance return is 10
       advanceResponse.vts.size should be(10)
+    } finally {
+      session.close()
+    }
+  }
+test("Test Advance that reaches limit for both lvts and rvts") {
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      Pub(99, Seq("a"), Some("x"), false, None, None).doit(session)
+      Pub(100, Seq("b"), Some("y"), false, None, None).doit(session)
+      Pub(101, Seq("c"), Some("yy"), false, None, None).doit(session)
+      Pub(102, Seq("d"), Some("yyy"), false, None, None).doit(session)
+      Pub(103, Seq("e"), Some("yyyy"), false, None, None).doit(session)
+      Pub(104, Seq("f"), Some("yyyyy"), false, None, None).doit(session)
+      Pub(105, Seq("g"), Some("yyyyyy"), false, None, None).doit(session)
+      Pub(106, Seq("h"), Some("yyyyyyy"), false, None, None).doit(session)
+      Pub(107, Seq("j"), Some("yyyyyyyy"), false, None, None).doit(session)
+      Pub(1, Seq("k"), Some("yyyyyyyyy"), false, None, None).doit(session).vts
+      Pub(108, Seq("a"), Some("x"), true, None, None).doit(session)
+      Pub(109, Seq("b"), Some("y"), true, None, None).doit(session)
+      Pub(110, Seq("c"), Some("yy"), true, None, None).doit(session)
+      Pub(111, Seq("d"), Some("yyy"), true, None, None).doit(session)
+      Pub(112, Seq("e"), Some("yyyy"), true, None, None).doit(session)
+      Pub(113, Seq("f"), Some("yyyyy"), true, None, None).doit(session)
+      Pub(114, Seq("g"), Some("yyyyyy"), true, None, None).doit(session)
+      Pub(115, Seq("h"), Some("yyyyyyy"), true, None, None).doit(session)
+      Pub(116, Seq("j"), Some("yyyyyyyy"), true, None, None).doit(session)
+      Pub(117, Seq("k"), Some("yyyyyyyyy"), true, None, None).doit(session).vts
+      Pub(118, Seq("l"), Some("yyyyyyyyyy"), false, None, None).doit(session)
+      val lastPubVTS = Pub(119, Seq("l"), Some("yyyyyyyyyy"), true, None, None).doit(session)
+      val advanceResponse = Advance(pattern = Seq("*")).doit(session)
+      //vts starts at 1, so 10 entries should get us to 11
+      println("advanceResponse: " + advanceResponse.toString())
+      advanceResponse.rvts should be(lastPubVTS.vts)
+      //Max advance return is 10
+      advanceResponse.vts.size should be(10)
+      val advanceResponse2 = Advance(advanceResponse.lvts, advanceResponse.rvts, pattern = Seq("*")).doit(session)
+      println("advanceResponse2: " + advanceResponse2.toString())
+    } finally {
+      session.close()
+    }
+  }
+
+
+  test("Test Advance that reaches limit with attic advances") {
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      Pub(99, Seq("a"), Some("x"), false, None, None).doit(session)
+      Pub(100, Seq("b"), Some("y"), false, None, None).doit(session)
+      Pub(101, Seq("c"), Some("yy"), false, None, None).doit(session)
+      Pub(102, Seq("d"), Some("yyy"), false, None, None).doit(session)
+      Pub(103, Seq("e"), Some("yyyy"), false, None, None).doit(session)
+      Pub(104, Seq("f"), Some("yyyyy"), false, None, None).doit(session)
+      Pub(105, Seq("g"), Some("yyyyyy"), false, None, None).doit(session)
+      Pub(106, Seq("h"), Some("yyyyyyy"), false, None, None).doit(session)
+      Pub(107, Seq("j"), Some("yyyyyyyy"), false, None, None).doit(session)
+      Pub(1, Seq("k"), Some("yyyyyyyyy"), false, None, None).doit(session)
+//      Pub(108, Seq("a"), Some("x"), true, None, None).doit(session)
+//      Pub(109, Seq("b"), Some("y"), true, None, None).doit(session)
+//      Pub(110, Seq("c"), Some("yy"), true, None, None).doit(session)
+//      Pub(111, Seq("d"), Some("yyy"), true, None, None).doit(session)
+//      Pub(112, Seq("e"), Some("yyyy"), true, None, None).doit(session)
+//      Pub(113, Seq("f"), Some("yyyyy"), true, None, None).doit(session)
+//      Pub(114, Seq("g"), Some("yyyyyy"), true, None, None).doit(session)
+//      Pub(115, Seq("h"), Some("yyyyyyy"), true, None, None).doit(session)
+//      Pub(116, Seq("j"), Some("yyyyyyyy"), true, None, None).doit(session)
+//      Pub(117, Seq("k"), Some("yyyyyyyyy"), true, None, None).doit(session)
+      Pub(120, Seq("a"), Some("yx"), false, Option("$publicWrite"), None).doit(session)
+      Pub(121, Seq("b"), Some("yx"), false, Option("$publicWrite"), None).doit(session)
+      Pub(122, Seq("c"), Some("yxy"), false, Option("$publicWrite"), None).doit(session)
+      Pub(123, Seq("d"), Some("yxyy"), false, Option("$publicWrite"), None).doit(session)
+      Pub(124, Seq("e"), Some("yxyyy"), false, Option("$publicWrite"), None).doit(session)
+      Pub(125, Seq("f"), Some("yxyyyy"), false, Option("$publicWrite"), None).doit(session)
+      Pub(126, Seq("g"), Some("yxyyyyy"), false, Option("$publicWrite"), None).doit(session)
+      Pub(127, Seq("h"), Some("yxyyyyyy"), false, Option("$publicWrite"), None).doit(session)
+      Pub(128, Seq("j"), Some("yxyyyyyyy"), false, Option("$publicWrite"), None).doit(session)
+      val lastPubVTS = Pub(129, Seq("k"), Some("yxyyyyyyyy"), false, Option("$publicWrite"), None).doit(session)
+      val advanceResponse = Advance(pattern = Seq("*")).doit(session)
+      //vts starts at 1, so 10 entries should get us to 11
+      println("advanceResponse: " + advanceResponse.toString())
+      advanceResponse.rvts should be(lastPubVTS.vts)
+      //Max advance return is 10
+      advanceResponse.vts.size should be(19)
+      val advanceResponse2 = Advance(advanceResponse.lvts, advanceResponse.rvts, pattern = Seq("*")).doit(session)
+      println("advanceResponse2: " + advanceResponse2.toString())
     } finally {
       session.close()
     }
