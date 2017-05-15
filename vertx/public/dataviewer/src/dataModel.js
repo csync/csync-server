@@ -135,7 +135,7 @@ function processData(incomingData){
         if(node && tree.updatedNode() && node.original.acl !== tree.updatedNode().acl && node.id === tree.updatedNode().key){
             return;
         }
-        else if(node.children.length === 0)
+        else if(!node.children || node.children.length === 0)
         {
             tree.deleteNode(node);
         }
