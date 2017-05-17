@@ -29,14 +29,17 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
 
     us.transaction { sqlConnection =>
 
+      //Sanitize the limits, we wish to provide limits up to our maximum allowed.
       val limit = 10
       backwardLimit = math.min(backwardLimit,limit)
       forwardLimit = math.min(forwardLimit,limit)
 
+      //Convert the data we have into a usable form for the database calls
       val (patternWhere, patternVals) = Pattern(pattern).asWhere
       val acls = getAcls(sqlConnection, us.userInfo)
       val aclWhere = List.fill(acls.length)("?").mkString(",")
 
+      //Get sane default values for min and max vts
       var minVts: Long = 0
       var maxVts = SqlStatement.queryResult(
         sqlConnection,
@@ -44,8 +47,8 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
         Seq()
       ) { rs => rs.getLong("last_value") }.head
 
+      // Getting New (as in VTS later then rvts) data
       var forwardList: Seq[Long] = Seq.empty[Long]
-
       if (forwardLimit > 0) {
         val queryVals1 = Seq(rvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, forwardLimit) ++ Seq(rvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, forwardLimit, forwardLimit)
         println(queryVals1.toString())
@@ -53,29 +56,34 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
         if (forwardList.length == forwardLimit) { //We asked for backwards limit number of items and we received that many, new lvts is the lowest vts of that list
           maxVts = forwardList.last
         }
-      } else {
+      } else { //We are not trying to go forwards, but we still need to find a valid rvts
+        //If an rvts was provided, we haven't moved forward so it should still be valid
         if(rvts != Long.MaxValue) {
           maxVts = rvts
-        } else if (lvts != Long.MaxValue) {
+        } else if (lvts != Long.MaxValue) { // If an lvts was provided and not an rvts, we haven't moved forward so that should still be valid
           maxVts = lvts
         }
+        //We default to the last_value sql statement above if no rvts or lvts was provided
       }
 
+      // Getting old data
       var backwardList: Seq[Long] = Seq.empty[Long]
       if (backwardLimit > 0) {
         val queryVals2 = Seq(lvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, backwardLimit) ++ Seq(lvts) ++ patternVals ++ acls ++ Seq(us.userInfo.userId, backwardLimit, backwardLimit)
         println(queryVals2.toString())
         backwardList = getOldData(sqlConnection, patternWhere, aclWhere, queryVals2)
-        if (backwardList.length == backwardLimit) { //We asked for backwards limit number of items and we received that many, new lvts is the lowest vts of that list
+        if (backwardList.length == backwardLimit) {
+          //We asked for backwards limit number of items and we received that many, new lvts is the lowest vts of that list
           minVts = backwardList.last
         }
-      }
-      else {
+      } else { //They are not trying to go backwards, but we still need to provide a valid new lvts
+        //This is a bit complicated because they can provide lvts and rvts or we can default them to other values
+        //Basically, we end up setting min vts to the lowest of lvts,rvts,maxvts and forwardlist.head, but forward list.head
+        //should always be <= maxvts if it exists
         minVts = math.min(lvts,rvts)
         if (forwardList.length > 0) {
           minVts = math.min(minVts, forwardList.head)
-        }
-        else {
+        } else {
           minVts = math.min(maxVts,minVts)
         }
       }
