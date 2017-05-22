@@ -23,7 +23,7 @@ import com.ibm.csync.session.Session
 import com.ibm.csync.types.Pattern
 
 //scalastyle:off
-case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var backwardLimit: Int = Int.MaxValue, var forwardLimit: Int = Int.MaxValue, pattern: Seq[String]) extends Command {
+case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var backwardLimit: Int = 0, var forwardLimit: Int = Int.MaxValue, pattern: Seq[String]) extends Command {
 
   override def doit(us: Session): AdvanceResponse = {
 
@@ -31,8 +31,8 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
 
       //Sanitize the limits, we wish to provide limits up to our maximum allowed.
       val limit = 10
-      backwardLimit = math.min(backwardLimit,limit)
-      forwardLimit = math.min(forwardLimit,limit)
+      backwardLimit = math.min(backwardLimit, limit)
+      forwardLimit = math.min(forwardLimit, limit)
 
       //Convert the data we have into a usable form for the database calls
       val (patternWhere, patternVals) = Pattern(pattern).asWhere
@@ -58,7 +58,7 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
         }
       } else { //We are not trying to go forwards, but we still need to find a valid rvts
         //If an rvts was provided, we haven't moved forward so it should still be valid
-        if(rvts != Long.MaxValue) {
+        if (rvts != Long.MaxValue) {
           maxVts = rvts
         } else if (lvts != Long.MaxValue) { // If an lvts was provided and not an rvts, we haven't moved forward so that should still be valid
           maxVts = lvts
@@ -80,11 +80,11 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
         //This is a bit complicated because they can provide lvts and rvts or we can default them to other values
         //Basically, we end up setting min vts to the lowest of lvts,rvts,maxvts and forwardlist.head, but forward list.head
         //should always be <= maxvts if it exists
-        minVts = math.min(lvts,rvts)
+        minVts = math.min(lvts, rvts)
         if (forwardList.length > 0) {
           minVts = math.min(minVts, forwardList.head)
         } else {
-          minVts = math.min(maxVts,minVts)
+          minVts = math.min(maxVts, minVts)
         }
       }
 
@@ -140,6 +140,5 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
       queryVals1
 
     ) { rs => rs.getLong("vts") }
-
 
 }
