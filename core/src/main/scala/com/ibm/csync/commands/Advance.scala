@@ -74,17 +74,17 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
         backwardList = getOldData(sqlConnection, patternWhere, aclWhere, queryVals2)
         if (backwardList.length == backwardLimit) {
           //We asked for backwards limit number of items and we received that many, new lvts is the lowest vts of that list
-          minVts = backwardList.last
+          minVts = backwardList.last - 1
         }
       } else { //They are not trying to go backwards, but we still need to provide a valid new lvts
         //This is a bit complicated because they can provide lvts and rvts or we can default them to other values
         //Basically, we end up setting min vts to the lowest of lvts,rvts,maxvts and forwardlist.head, but forward list.head
         //should always be <= maxvts if it exists
-        minVts = math.min(lvts, rvts)
+        minVts = math.min(lvts, rvts - 1)
         if (forwardList.length > 0) {
-          minVts = math.min(minVts, forwardList.head)
+          minVts = math.min(minVts, forwardList.head - 1)
         } else {
-          minVts = math.min(maxVts, minVts)
+          minVts = math.min(maxVts - 1, minVts)
         }
       }
 
@@ -125,7 +125,7 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
     SqlStatement.queryResult(
       sqlConnection,
       s"""
-          (SELECT vts FROM latest WHERE vts < ?
+          (SELECT vts FROM latest WHERE vts <= ?
               ${addTerm("AND", patternWhere)}
 					    AND (aclid IN ($aclWhere) OR creatorid = ?)
 					    ORDER BY vts DESC LIMIT ?)

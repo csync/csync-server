@@ -172,7 +172,7 @@ test("Test Advance that reaches limit for both lvts and rvts") {
       println(advanceResponse.toString())
       //Should return lvts of 13 and rvts of 31 with 19 entries
       advanceResponse.rvts should be(lastPubVTS.vts)
-      advanceResponse.vts.size should be(advanceResponse.rvts-advanceResponse.lvts+1)
+      advanceResponse.vts.size should be(advanceResponse.rvts-advanceResponse.lvts)
 
       val advanceResponse2 = Advance(advanceResponse.lvts, advanceResponse.rvts, pattern = Seq("*"), backwardLimit = 10).doit(session)
       println(advanceResponse2.toString())
@@ -194,7 +194,7 @@ test("Test Advance that reaches limit for both lvts and rvts") {
       println(advanceResponse.toString())
       advanceResponse.rvts should be(lastVTS)
       advanceResponse.vts.size should be(0)
-      advanceResponse.lvts should be(lastVTS)
+      advanceResponse.lvts should be(lastVTS - 1)
     } finally {
       session.close()
     }
