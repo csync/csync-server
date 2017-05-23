@@ -30,7 +30,7 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
     us.transaction { sqlConnection =>
 
       //Sanitize the limits, we wish to provide limits up to our maximum allowed.
-      val limit = 10
+      val limit = 20
       backwardLimit = math.min(backwardLimit, limit)
       forwardLimit = math.min(forwardLimit, limit)
 
