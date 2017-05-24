@@ -26,7 +26,7 @@ import scala.collection.mutable
 
 object Fetch {
 
-  def fetchRest(dataSource: DataSource, userInfo: UserInfo, path: Seq[String]): FetchResponse = {
+  def fetchRest(dataSource: DataSource, userInfo: UserInfo, path: Seq[String]): RestFetchResponse = {
 
     val updates = mutable.ArrayBuffer[Data]()
 
@@ -52,35 +52,38 @@ object Fetch {
           )
         }
     })
-    FetchResponse(updates)
+    RestFetchResponse(updates)
   }
 }
-case class Fetch(vts: Seq[Long]) extends Command {
+case class Fetch(backwardVts: Seq[Long] = null, vts: Seq[Long] = null) extends Command {
 
   //override def shortString: String = s"$vts"
 
   val FETCH_GROUP_SIZE = 10
 
   override def doit(us: Session): FetchResponse = {
-    val updates = mutable.ArrayBuffer[Data]()
+    val forwardUpdates = mutable.ArrayBuffer[Data]()
+    val backwardUpdates = mutable.ArrayBuffer[Data]()
 
     us.transaction { sqlConnection =>
       val acls = com.ibm.csync.commands.getAcls(sqlConnection, us.userInfo)
       val aclWhere = List.fill(acls.length)("?").mkString(",")
 
       // sort vts list (will most likely be ordered, but just to be sure)
-      vts.sorted.grouped(FETCH_GROUP_SIZE).toList.foreach { vtsChunk =>
-        val vtsWhere = List.fill(vtsChunk.length)("?").mkString(",")
-        val queryVals = acls ++ Seq(us.userInfo.userId) ++ vtsChunk
-        updates ++= SqlStatement.queryResult(
-          sqlConnection,
-          s"""
+      //Getting data from for new VTS
+      if (vts != null) {
+        vts.sorted.grouped(FETCH_GROUP_SIZE).toList.foreach { vtsChunk =>
+          val vtsWhere = List.fill(vtsChunk.length)("?").mkString(",")
+          val queryVals = acls ++ Seq(us.userInfo.userId) ++ vtsChunk
+          forwardUpdates ++= SqlStatement.queryResult(
+            sqlConnection,
+            s"""
             SELECT vts,cts,key,aclid,creatorid,isDeleted,data FROM latest
                 WHERE (aclid IN ($aclWhere) OR creatorid = ?)
                 AND vts IN ($vtsWhere)
           """,
-          queryVals
-        ) { rs =>
+            queryVals
+          ) { rs =>
             Data(
               vts = rs.getLong("vts"), cts = rs.getLong("cts"), path = rs.getString("key").split('.'),
               acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = rs.getBoolean("isdeleted"),
@@ -88,23 +91,63 @@ case class Fetch(vts: Seq[Long]) extends Command {
             )
           }
 
-        updates ++= SqlStatement.queryResult(
-          sqlConnection,
-          s"""
+          forwardUpdates ++= SqlStatement.queryResult(
+            sqlConnection,
+            s"""
             SELECT vts,key,aclid,creatorid FROM attic
                 WHERE (aclid IN ($aclWhere) OR creatorid = ?)
                 AND vts IN ($vtsWhere)
           """,
-          queryVals
-        ) { rs =>
+            queryVals
+          ) { rs =>
             Data(
               vts = rs.getLong("vts"), cts = 0, path = rs.getString("key").split('.'),
               acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = true, data = None
             )
           }
+        }
+      }
+
+      // sort vts list (will most likely be ordered, but just to be sure)
+      // getting data for old vts
+      if (backwardVts != null) {
+        backwardVts.sorted.grouped(FETCH_GROUP_SIZE).toList.foreach { vtsChunk =>
+          val vtsWhere = List.fill(vtsChunk.length)("?").mkString(",")
+          val queryVals = acls ++ Seq(us.userInfo.userId) ++ vtsChunk
+          backwardUpdates ++= SqlStatement.queryResult(
+            sqlConnection,
+            s"""
+            SELECT vts,cts,key,aclid,creatorid,isDeleted,data FROM latest
+                WHERE (aclid IN ($aclWhere) OR creatorid = ?)
+                AND vts IN ($vtsWhere)
+          """,
+            queryVals
+          ) { rs =>
+            Data(
+              vts = rs.getLong("vts"), cts = rs.getLong("cts"), path = rs.getString("key").split('.'),
+              acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = rs.getBoolean("isdeleted"),
+              data = Option(rs.getString("data"))
+            )
+          }
+
+          backwardUpdates ++= SqlStatement.queryResult(
+            sqlConnection,
+            s"""
+            SELECT vts,key,aclid,creatorid FROM attic
+                WHERE (aclid IN ($aclWhere) OR creatorid = ?)
+                AND vts IN ($vtsWhere)
+          """,
+            queryVals
+          ) { rs =>
+            Data(
+              vts = rs.getLong("vts"), cts = 0, path = rs.getString("key").split('.'),
+              acl = rs.getString("aclid"), creator = rs.getString("creatorid"), deletePath = true, data = None
+            )
+          }
+        }
       }
     }
-    FetchResponse(updates)
+    FetchResponse(backwardUpdates, forwardUpdates)
   }
 
 }

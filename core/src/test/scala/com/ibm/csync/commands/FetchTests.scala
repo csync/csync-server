@@ -47,7 +47,7 @@ class FetchTests extends FunSuite with Matchers {
       val pubResponse = Pub(102, Seq("d"), Some("x"), false, None, None).doit(session)
 
       //Check to be sure fetch is the key we published
-      val fetchResponse = Fetch(List(2)).doit(session)
+      val fetchResponse = Fetch(null,List(2)).doit(session)
       fetchResponse.response.head.vts should be(pubResponse.vts)
       fetchResponse.response.head.cts should be(pubResponse.cts)
       fetchResponse.response.head.data should be(Some("x"))
@@ -62,7 +62,18 @@ class FetchTests extends FunSuite with Matchers {
     val session = fakeSession { _ => Future.successful(()) }
     try {
       //Check to be sure no fetch exists
-      val fetchResponse = Fetch(List(2)).doit(session)
+      val fetchResponse = Fetch(null,List(2)).doit(session)
+      fetchResponse.response.size should be(0)
+    } finally {
+      session.close()
+    }
+  }
+
+  test("Both fetches are nuill") {
+    val session = fakeSession { _ => Future.successful(()) }
+    try {
+      //Check to be sure no fetch exists
+      val fetchResponse = Fetch(null,null).doit(session)
       fetchResponse.response.size should be(0)
     } finally {
       session.close()

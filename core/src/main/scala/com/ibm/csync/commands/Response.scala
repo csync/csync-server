@@ -33,7 +33,10 @@ case class Data(path: Seq[String], data: Option[String], deletePath: Boolean,
 case class Error(msg: String, cause: Option[String]) extends Response {
   override def kind: String = "error"
 }
-case class FetchResponse(response: Seq[Data]) extends Response {
+case class FetchResponse(backwardResponse: Seq[Data], response: Seq[Data]) extends Response {
+  override def kind: String = "fetchResponse"
+}
+case class RestFetchResponse(response: Seq[Data]) extends Response {
   override def kind: String = "fetchResponse"
 }
 case class GetAclsResponse(acls: Seq[String]) extends Response {
