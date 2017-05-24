@@ -20,7 +20,7 @@ sealed trait Response {
   def kind: String
 }
 
-case class AdvanceResponse(vts: Seq[Long], lvts: Long, rvts: Long) extends Response {
+case class AdvanceResponse(backwardVTS: Seq[Long], vts: Seq[Long], lvts: Long, rvts: Long) extends Response {
   override def kind: String = "advanceResponse"
 }
 case class ConnectResponse(uuid: String, uid: String, expires: Long) extends Response {

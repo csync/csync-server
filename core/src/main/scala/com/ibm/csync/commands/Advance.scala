@@ -88,8 +88,9 @@ case class Advance(lvts: Long = Long.MaxValue, rvts: Long = Long.MaxValue, var b
         }
       }
 
-      AdvanceResponse(backwardList ++ forwardList, minVts, maxVts)
-    }
+      println(AdvanceResponse(backwardList, forwardList, minVts, maxVts).toString())
+      AdvanceResponse(backwardList, forwardList, minVts, maxVts)
+  }
 
   }
 

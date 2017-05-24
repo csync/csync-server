@@ -50,9 +50,10 @@ class AdvanceTests extends FunSuite with Matchers {
       Pub(102, Seq("a"), Some("yyy"), false, None, None).doit(session)
       val lastVTS = Pub(103, Seq("a"), Some("yyyy"), false, None, None).doit(session).vts
       val advanceResponse = Advance(pattern = Seq("a"), backwardLimit = 10).doit(session)
-      advanceResponse.rvts should be(lastVTS)
-      advanceResponse.vts.head should be(lastVTS)
-      advanceResponse.vts.size should be(1)
+      advanceResponse.rvts should be (lastVTS)
+      advanceResponse.backwardVTS.head should be (lastVTS)
+      advanceResponse.backwardVTS.size should be (1)
+      advanceResponse.vts.size should be (0)
     } finally {
       session.close()
     }
@@ -67,9 +68,10 @@ class AdvanceTests extends FunSuite with Matchers {
       Pub(102, Seq("a"), Some("yyy"), false, None, None).doit(session)
       val lastVTS = Pub(103, Seq("a"), Some("yyyy"), false, None, None).doit(session).vts
       val advanceResponse = Advance(pattern = Seq("a")).doit(session)
-      advanceResponse.rvts should be(lastVTS)
-      advanceResponse.lvts should be(lastVTS - 1)
-      advanceResponse.vts.size should be(0)
+      advanceResponse.rvts should be (lastVTS)
+      advanceResponse.lvts should be (lastVTS - 1)
+      advanceResponse.vts.size should be (0)
+      advanceResponse.backwardVTS.size should be (0)
     } finally {
       session.close()
     }
@@ -84,10 +86,11 @@ class AdvanceTests extends FunSuite with Matchers {
       val lastAVTS = Pub(102, Seq("a"), Some("yyy"), false, None, None).doit(session).vts
       val maxVTS = Pub(103, Seq("b"), Some("yyyy"), false, None, None).doit(session).vts
       val advanceResponse = Advance(1,1,50,50, Seq("a")).doit(session)
-      advanceResponse.rvts should be(maxVTS)
+      advanceResponse.rvts should be (maxVTS)
       advanceResponse.lvts should be (0)
-      advanceResponse.vts.last should be(lastAVTS)
-      advanceResponse.vts.size should be(1)
+      advanceResponse.vts.last should be (lastAVTS)
+      advanceResponse.vts.size should be (1)
+      advanceResponse.backwardVTS.size should be (0)
 
     } finally {
       session.close()
@@ -112,9 +115,10 @@ class AdvanceTests extends FunSuite with Matchers {
       //vts starts at 1, so 10 entries should get us to 11
       advanceResponse.rvts should be(tenthPubVTS)
       //Max advance return is 10
-      advanceResponse.vts.size should be(10)
-      advanceResponse.lvts should be(0)
-      advanceResponse.rvts should be(tenthPubVTS)
+      advanceResponse.vts.size should be (10)
+      advanceResponse.lvts should be (0)
+      advanceResponse.rvts should be (tenthPubVTS)
+      advanceResponse.backwardVTS.size should be (0)
     } finally {
       session.close()
     }
@@ -134,9 +138,10 @@ test("Test Advance that goes backwards at limit") {
       Pub(108, Seq("k"), Some("yyyyyyyyy"), false, None, None).doit(session)
       val lastPubVTS = Pub(109, Seq("l"), Some("yyyyyyyyyy"), false, None, None).doit(session)
       val advanceResponse = Advance(pattern = Seq("*"), backwardLimit = 10).doit(session)
-      advanceResponse.rvts should be(lastPubVTS.vts)
-      advanceResponse.lvts should be(2)
-      advanceResponse.vts.size should be(10)
+      advanceResponse.rvts should be (lastPubVTS.vts)
+      advanceResponse.lvts should be (2)
+      advanceResponse.backwardVTS.size should be (10)
+      advanceResponse.vts.size should be (0)
     } finally {
       session.close()
     }
@@ -167,13 +172,15 @@ test("Test Advance that goes backwards at limit") {
       Pub(128, Seq("j"), Some("yxyyyyyyy"), false, Option("$publicWrite"), None).doit(session)
       val lastPubVTS = Pub(129, Seq("k"), Some("yxyyyyyyyy"), false, Option("$publicWrite"), None).doit(session)
       val advanceResponse = Advance(pattern = Seq("*"), backwardLimit = 10).doit(session)
-      advanceResponse.rvts should be(lastPubVTS.vts)
-      advanceResponse.vts.size should be(advanceResponse.rvts-advanceResponse.lvts)
+      advanceResponse.rvts should be (lastPubVTS.vts)
+      advanceResponse.backwardVTS.size should be (advanceResponse.rvts-advanceResponse.lvts)
+      advanceResponse.vts.size should be (0)
 
       val advanceResponse2 = Advance(advanceResponse.lvts, advanceResponse.rvts, pattern = Seq("*"), backwardLimit = 10).doit(session)
       advanceResponse2.lvts should be (11)
       advanceResponse2.rvts should be (advanceResponse2.rvts)
-      advanceResponse2.vts.size should be (10)
+      advanceResponse2.backwardVTS.size should be (10)
+      advanceResponse.vts.size should be (0)
     } finally {
       session.close()
     }
