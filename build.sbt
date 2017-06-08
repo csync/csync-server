@@ -55,6 +55,7 @@ lazy val server = (project in file("."))
   .aggregate(core)
   .settings(
     mappings in Universal ++= directory("vertx/public"),
+    mappings in Universal  ++= directory("openwhisk"),
     aggregate in Docker := false,
     NativePackagerKeys.maintainer in Docker := "CSync",
     NativePackagerKeys.dockerExposedPorts in Docker := Seq(P9000, P9443),

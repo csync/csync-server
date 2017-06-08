@@ -9,9 +9,10 @@ var app = express();
 app.use(bodyParser.json()); // for parsing application/json
 
 // CSync
-var csyncApp = csync({ host: "169.46.157.39", port: 6005, useSSL: false });
+var csyncApp = csync({ host: "localhost", port: 6005, useSSL: false });
 var keys = {};
 csyncApp.authenticate("demo", "demoToken");
+
 
 // render index page
 app.put('/webhooks', function (req, res) {
