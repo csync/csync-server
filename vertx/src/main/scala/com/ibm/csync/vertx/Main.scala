@@ -322,10 +322,9 @@ object Main extends LazyLogging {
       override def start(): Unit = {
         val ctx = VertxContext(vertx.getOrCreateContext())
         val server = vertx.createHttpServer(serverOptions)
-        val httpClientOptions = new HttpClientOptions();
+        val httpClientOptions = new HttpClientOptions()
         httpClientOptions.setDefaultPort(6004).setDefaultHost("localhost")
-        //        val client = vertx.createHttpClient(new HttpClientOptions());
-        val client = vertx.createHttpClient(httpClientOptions);
+        val client = vertx.createHttpClient(httpClientOptions)
 
         val disableDataviewer = sys.env.getOrElse("DISABLE_DATAVIEWER", "false")
 
@@ -361,7 +360,6 @@ object Main extends LazyLogging {
                 handleRestCalls(ctx, request, ds, rabbitConnection, "")
               } else Future.successful(None)
             case "/webhooks" =>
-              println("Proxying request: " + request.uri())
               Future {
                 val cReq: HttpClientRequest = client.request(request.method(), request.uri(), new Handler[HttpClientResponse] {
                   override def handle(cRes: HttpClientResponse): Unit = {
@@ -370,7 +368,6 @@ object Main extends LazyLogging {
                     request.response().headers().setAll(cRes.headers())
                     request.response().setChunked(true)
                     cRes.handler({ data: Buffer =>
-                      println("Proxying response body:" + data)
                       request.response().write(data)
                     })
                     cRes.endHandler(new Handler[Void] {
@@ -405,4 +402,5 @@ object Main extends LazyLogging {
 
     out.future
   }
+  //scalastyle:on
 }
