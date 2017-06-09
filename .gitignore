@@ -9,3 +9,4 @@ target/
 /vertx/public/dataviewer/ui/*.png
 /vertx/public/dataviewer/ui/*.gif
 /vertx/public/dataviewer/lib/csync/node_modules
+/openwhisk/node_modules

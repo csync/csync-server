@@ -55,6 +55,7 @@ lazy val server = (project in file("."))
   .aggregate(core)
   .settings(
     mappings in Universal ++= directory("vertx/public"),
+    mappings in Universal  ++= directory("openwhisk"),
     aggregate in Docker := false,
     NativePackagerKeys.maintainer in Docker := "CSync",
     NativePackagerKeys.dockerExposedPorts in Docker := Seq(P9000, P9443),
@@ -75,7 +76,7 @@ lazy val server = (project in file("."))
       Cmd("RUN", "sed -i.foo 's/.*PASS_MAX_DAYS.*$/PASS_MAX_DAYS  90/' /etc/login.defs"),
       Cmd("RUN", "echo 'password  requisite pam_cracklib.so retry=3 minlen=8' >> /etc/pam.d/common-password"),
       Cmd("RUN", "sed -i.foo 's/.*PASS_MIN_DAYS.*$/PASS_MIN_DAYS  1/' /etc/login.defs"),
-      Cmd("RUN", "apt-mark hold postgresql-common && apt-key update && apt-get update && apt-get -y install apt-utils && apt-get -y upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*"),
+      Cmd("RUN", "apt-mark hold postgresql-common && apt-mark hold locales && apt-key update && apt-get update && apt-get -y install apt-utils && apt-get -y upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*"),
       ExecCmd("ENTRYPOINT", "/csync.sh")))
 
 lazy val vertx = project.dependsOn(core)

@@ -33,6 +33,7 @@ import com.rabbitmq.client.Connection
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import io.vertx.core._
+import io.vertx.core.buffer.Buffer
 import io.vertx.core.http._
 import io.vertx.core.http.RequestOptions
 import io.vertx.core.net.PemKeyCertOptions
@@ -312,6 +313,7 @@ object Main extends LazyLogging {
     }
   }
 
+  //scalastyle:off
   private def deploy(vertx: Vertx, ds: DataSource, rabbitConnection: Connection,
     serverOptions: HttpServerOptions): Future[HttpServer] = {
     val out = Promise[HttpServer]
@@ -320,6 +322,10 @@ object Main extends LazyLogging {
       override def start(): Unit = {
         val ctx = VertxContext(vertx.getOrCreateContext())
         val server = vertx.createHttpServer(serverOptions)
+        val httpClientOptions = new HttpClientOptions()
+        httpClientOptions.setDefaultPort(6004).setDefaultHost("localhost")
+        val client = vertx.createHttpClient(httpClientOptions)
+
         val disableDataviewer = sys.env.getOrElse("DISABLE_DATAVIEWER", "false")
 
         server.requestHandler { request =>
@@ -353,6 +359,31 @@ object Main extends LazyLogging {
               } else if (request.method().equals(HttpMethod.GET)) {
                 handleRestCalls(ctx, request, ds, rabbitConnection, "")
               } else Future.successful(None)
+            case "/webhooks" =>
+              Future {
+                val cReq: HttpClientRequest = client.request(request.method(), request.uri(), new Handler[HttpClientResponse] {
+                  override def handle(cRes: HttpClientResponse): Unit = {
+                    println("Proxying response: " + cRes.statusCode())
+                    request.response().setStatusCode(cRes.statusCode())
+                    request.response().headers().setAll(cRes.headers())
+                    request.response().setChunked(true)
+                    cRes.handler({ data: Buffer =>
+                      request.response().write(data)
+                    })
+                    cRes.endHandler(new Handler[Void] {
+                      override def handle(event: Void): Unit =
+                        request.response().end()
+                    })
+                  }
+                })
+                cReq.headers().setAll(request.headers())
+                cReq.setChunked(true)
+                request.handler({ data: Buffer =>
+                  println("Proxying request body:" + data)
+                  cReq.write(data)
+                  cReq.end()
+                })
+              }
             case "/" => send("index.html")
 
             // TODO: think about security
@@ -371,4 +402,5 @@ object Main extends LazyLogging {
 
     out.future
   }
+  //scalastyle:on
 }
