@@ -55,8 +55,13 @@ rm -f /opt/docker/RUNNING_PID
 
 sed -i "s/YOUR_GOOGLE_CLIENT_ID_HERE/"$CSYNC_GOOGLE_CLIENT_IDS"/" /opt/docker/public/dataviewer/ui/bundle.js
 
+echo "Starting OpenWhisk Integration"
+nohup sleep 60 && node /opt/docker/openwhisk/app.js &
+
 echo "Starting CSync"
 export USER=postgres
 export VCAP_APPLICATION="{\"space_id\":\"$space_id\", \"application_id\":\"$uuid\"}"
 su -m postgres -c /opt/docker/bin/csync
+
+
 
