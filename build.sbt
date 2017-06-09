@@ -27,7 +27,7 @@ SbtScalariform.scalariformSettings
 
 name := "csync"
 lazy val commonSettings = Seq(
-  version := "1.4.0",
+  version := "1.5.0",
   scalaVersion := "2.12.1",
   scalacOptions ++= Seq("-deprecation") /*, "-Xexperimental")*/ ,
   ScalariformKeys.preferences := ScalariformKeys.preferences.value
